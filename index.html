@@ -210,6 +210,19 @@
       color: #f0f4fb;
     }
 
+    .logo svg {
+      width: 24px;
+      height: 24px;
+      overflow: visible;
+      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.18));
+    }
+
+    .avatar-piece {
+      width: 24px;
+      height: 24px;
+      display: block;
+    }
+
     .player-name {
       font-size: 14px;
       overflow: hidden;
@@ -224,12 +237,28 @@
     }
 
     .captured {
-      color: #d4dcea;
-      font-size: 17px;
-      line-height: 1;
-      letter-spacing: -2px;
-      min-height: 18px;
-      text-align: right;
+      min-height: 20px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: flex-end;
+      gap: 2px;
+      align-items: center;
+      max-width: 132px;
+    }
+
+    .captured-piece {
+      width: 18px;
+      height: 18px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      flex: none;
+    }
+
+    .captured-piece svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
     }
 
     .board-shell {
@@ -265,7 +294,6 @@
       padding: 0;
       display: grid;
       place-items: center;
-      font-family: "Arial Unicode MS", "Noto Sans Symbols 2", "Segoe UI Symbol", serif;
       line-height: 1;
       background: transparent;
       overflow: hidden;
@@ -303,20 +331,20 @@
     .piece {
       position: relative;
       z-index: 3;
-      font-size: clamp(34px, 8.3vw, 74px);
+      width: 84%;
+      height: 84%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
       transform: translateY(-1%);
       pointer-events: none;
-      filter: drop-shadow(0 2px 1px rgba(0,0,0,0.2));
     }
 
-    .piece.white-piece {
-      color: #ffffff;
-      text-shadow: 0 1px 0 #111827, 1px 0 0 #111827, 0 -1px 0 #111827, -1px 0 0 #111827;
-    }
-
-    .piece.black-piece {
-      color: #111827;
-      text-shadow: 0 1px 0 rgba(255,255,255,0.18);
+    .piece svg {
+      width: 100%;
+      height: 100%;
+      overflow: visible;
+      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.22));
     }
 
     .move-dot {
@@ -641,9 +669,15 @@
 
     .promotion-option {
       aspect-ratio: 1;
-      font-family: "Arial Unicode MS", "Noto Sans Symbols 2", "Segoe UI Symbol", serif;
-      font-size: 44px;
       padding: 0;
+      display: grid;
+      place-items: center;
+    }
+
+    .promotion-option svg {
+      width: 72%;
+      height: 72%;
+      overflow: visible;
     }
 
     .toast {
@@ -736,7 +770,7 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
-        <div class="logo">♞</div>
+        <div id="logoIcon" class="logo"></div>
         <div>
           <h1>Peer Chess</h1>
           <div class="subtitle">링크로 연결하는 실시간 온라인 체스</div>
@@ -906,12 +940,36 @@
     const firebaseDb = getDatabase(firebaseApp);
 
     const FILES = "abcdefgh";
-    const PIECE_GLYPHS = {
-      K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
-      k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟"
-    };
     const PIECE_NAMES = { K: "킹", Q: "퀸", R: "룩", B: "비숍", N: "나이트", P: "폰" };
     const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
+
+    function pieceSvgMarkup(piece, extraClass = "") {
+      const color = pieceColor(piece);
+      const isWhite = color === "w";
+      const fill = isWhite ? "#f8fbff" : "#1b2435";
+      const stroke = isWhite ? "#162033" : "#eaf0fb";
+      const accent = isWhite ? "#d8e1ef" : "#55647f";
+      const shadow = isWhite ? "rgba(17,24,39,0.1)" : "rgba(255,255,255,0.08)";
+      const common = `fill="${fill}" stroke="${stroke}" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"`;
+      const base = `<ellipse cx="50" cy="90" rx="27" ry="5" fill="${shadow}" stroke="none" opacity="0.65"></ellipse>`;
+      const type = piece.toUpperCase();
+      let content = "";
+
+      if (type === "P") {
+        content = `${base}<circle cx="50" cy="28" r="11" ${common}></circle><path d="M38 72c0-11 4-20 12-25c8 5 12 14 12 25z" ${common}></path><path d="M34 72h32v7H34z" ${common}></path><path d="M26 82h48v7H26z" ${common}></path>`;
+      } else if (type === "R") {
+        content = `${base}<path d="M28 20h12v9H28zM44 20h12v9H44zM60 20h12v9H60z" ${common}></path><path d="M26 29h48v7H26z" ${common}></path><path d="M34 36h32v33H34z" ${common}></path><path d="M31 69h38v8H31z" ${common}></path><path d="M24 81h52v8H24z" ${common}></path><path d="M40 44v18M50 44v18M60 44v18" fill="none" stroke="${accent}" stroke-width="3.2" stroke-linecap="round"></path>`;
+      } else if (type === "N") {
+        content = `${base}<path d="M69 24c-8 0-16 4-22 11l-10 5l7 9c-5 5-7 11-7 18v8h34c0-7-2-14-5-19l7-4c4-3 8-8 8-15c0-6-5-13-12-13z" ${common}></path><path d="M43 41c7-4 15-4 21 1" fill="none" stroke="${accent}" stroke-width="3.4"></path><circle cx="58" cy="33" r="2.7" fill="${stroke}" stroke="none"></circle><path d="M33 75h40v7H33z" ${common}></path><path d="M27 84h49v6H27z" ${common}></path>`;
+      } else if (type === "B") {
+        content = `${base}<path d="M50 20c-10 8-17 18-17 27c0 7 4 12 10 15l-4 12h22l-4-12c6-3 10-8 10-15c0-9-7-19-17-27z" ${common}></path><circle cx="57" cy="18" r="4.5" ${common}></circle><path d="M45 31l13 14" fill="none" stroke="${accent}" stroke-width="3.2"></path><path d="M33 75h34v7H33z" ${common}></path><path d="M26 84h48v6H26z" ${common}></path>`;
+      } else if (type === "Q") {
+        content = `${base}<circle cx="20" cy="24" r="5.5" ${common}></circle><circle cx="37" cy="16" r="5.5" ${common}></circle><circle cx="50" cy="24" r="5.5" ${common}></circle><circle cx="63" cy="16" r="5.5" ${common}></circle><circle cx="80" cy="24" r="5.5" ${common}></circle><path d="M22 30l8 26h40l8-26l-14 10l-14-16l-14 16z" ${common}></path><path d="M30 56h40v10H30z" ${common}></path><path d="M25 79h50v8H25z" ${common}></path><path d="M34 66h32" fill="none" stroke="${accent}" stroke-width="3.2"></path>`;
+      } else if (type === "K") {
+        content = `${base}<path d="M50 10v16M42 18h16" fill="none" stroke="${stroke}" stroke-width="4.6" stroke-linecap="round"></path><path d="M38 32c0-7 5-12 12-12s12 5 12 12c0 5-2 9-5 12h9c4 0 7 3 7 7v7H27v-7c0-4 3-7 7-7h9c-3-3-5-7-5-12z" ${common}></path><path d="M31 58h38v10H31z" ${common}></path><path d="M24 80h52v8H24z" ${common}></path><path d="M36 68h28" fill="none" stroke="${accent}" stroke-width="3.2"></path>`;
+      }
+      return `<svg class="${extraClass}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">${content}</svg>`;
+    }
 
     const boardEl = document.getElementById("board");
     const topPlayerEl = document.getElementById("topPlayer");
@@ -928,6 +986,9 @@
     const chatLog = document.getElementById("chatLog");
     const chatInput = document.getElementById("chatInput");
     const toastEl = document.getElementById("toast");
+    const logoIcon = document.getElementById("logoIcon");
+
+    if (logoIcon) logoIcon.innerHTML = pieceSvgMarkup("n");
 
     let game = createInitialGame();
     let selectedSquare = -1;
@@ -1523,7 +1584,7 @@
         button.type = "button";
         button.className = "promotion-option";
         const piece = color === "w" ? type.toUpperCase() : type;
-        button.textContent = PIECE_GLYPHS[piece];
+        button.innerHTML = pieceSvgMarkup(piece);
         button.setAttribute("aria-label", PIECE_NAMES[type.toUpperCase()]);
         button.addEventListener("click", () => {
           const move = pendingPromotion.find(candidate => candidate.promotion === type);
@@ -1568,8 +1629,8 @@
         const piece = game.board[square];
         if (piece) {
           const span = document.createElement("span");
-          span.className = `piece ${pieceColor(piece) === "w" ? "white-piece" : "black-piece"}`;
-          span.textContent = PIECE_GLYPHS[piece];
+          span.className = "piece";
+          span.innerHTML = pieceSvgMarkup(piece);
           button.appendChild(span);
         }
 
@@ -1593,12 +1654,12 @@
 
     function capturedFor(color) {
       const order = { P: 1, N: 2, B: 3, R: 4, Q: 5 };
-      return game.moveHistory
+      const pieces = game.moveHistory
         .filter(entry => entry.captured && pieceColor(entry.captured) === color)
         .map(entry => entry.captured)
-        .sort((a, b) => order[a.toUpperCase()] - order[b.toUpperCase()])
-        .map(piece => PIECE_GLYPHS[piece])
-        .join("");
+        .sort((a, b) => order[a.toUpperCase()] - order[b.toUpperCase()]);
+      if (pieces.length === 0) return '<span class="hint">없음</span>';
+      return pieces.map(piece => `<span class="captured-piece">${pieceSvgMarkup(piece)}</span>`).join("");
     }
 
     function playerCardHtml(color, isTop) {
@@ -1620,7 +1681,7 @@
       }
       const captured = capturedFor(opposite(color));
       const avatarClass = color === "b" ? "avatar black" : "avatar";
-      const king = color === "w" ? "♔" : "♚";
+      const king = pieceSvgMarkup(color === "w" ? "K" : "k", "avatar-piece");
       return `<div class="player-left"><div class="${avatarClass}">${king}</div><div><div class="player-name">${escapeHtml(name)}</div><div class="player-meta">${escapeHtml(meta)}</div></div></div><div class="captured">${captured}</div>`;
     }
 

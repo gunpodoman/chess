@@ -210,19 +210,6 @@
       color: #f0f4fb;
     }
 
-    .logo svg {
-      width: 24px;
-      height: 24px;
-      overflow: visible;
-      filter: drop-shadow(0 1px 1px rgba(0,0,0,0.18));
-    }
-
-    .avatar-piece {
-      width: 24px;
-      height: 24px;
-      display: block;
-    }
-
     .player-name {
       font-size: 14px;
       overflow: hidden;
@@ -237,28 +224,12 @@
     }
 
     .captured {
-      min-height: 20px;
-      display: flex;
-      flex-wrap: wrap;
-      justify-content: flex-end;
-      gap: 2px;
-      align-items: center;
-      max-width: 132px;
-    }
-
-    .captured-piece {
-      width: 18px;
-      height: 18px;
-      display: inline-flex;
-      align-items: center;
-      justify-content: center;
-      flex: none;
-    }
-
-    .captured-piece svg {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
+      color: #d4dcea;
+      font-size: 17px;
+      line-height: 1;
+      letter-spacing: -2px;
+      min-height: 18px;
+      text-align: right;
     }
 
     .board-shell {
@@ -294,6 +265,7 @@
       padding: 0;
       display: grid;
       place-items: center;
+      font-family: "Arial Unicode MS", "Noto Sans Symbols 2", "Segoe UI Symbol", serif;
       line-height: 1;
       background: transparent;
       overflow: hidden;
@@ -331,20 +303,20 @@
     .piece {
       position: relative;
       z-index: 3;
-      width: 84%;
-      height: 84%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
+      font-size: clamp(34px, 8.3vw, 74px);
       transform: translateY(-1%);
       pointer-events: none;
+      filter: drop-shadow(0 2px 1px rgba(0,0,0,0.2));
     }
 
-    .piece svg {
-      width: 100%;
-      height: 100%;
-      overflow: visible;
-      filter: drop-shadow(0 2px 2px rgba(0,0,0,0.22));
+    .piece.white-piece {
+      color: #ffffff;
+      text-shadow: 0 1px 0 #111827, 1px 0 0 #111827, 0 -1px 0 #111827, -1px 0 0 #111827;
+    }
+
+    .piece.black-piece {
+      color: #111827;
+      text-shadow: 0 1px 0 rgba(255,255,255,0.18);
     }
 
     .move-dot {
@@ -669,15 +641,9 @@
 
     .promotion-option {
       aspect-ratio: 1;
+      font-family: "Arial Unicode MS", "Noto Sans Symbols 2", "Segoe UI Symbol", serif;
+      font-size: 44px;
       padding: 0;
-      display: grid;
-      place-items: center;
-    }
-
-    .promotion-option svg {
-      width: 72%;
-      height: 72%;
-      overflow: visible;
     }
 
     .toast {
@@ -761,8 +727,7 @@
       }
 
       .piece {
-        width: 86%;
-        height: 86%;
+        font-size: clamp(34px, 11.5vw, 58px);
       }
     }
   </style>
@@ -771,10 +736,10 @@
   <main class="app">
     <header class="topbar">
       <div class="brand">
-        <div id="logoIcon" class="logo"></div>
+        <div class="logo">♞</div>
         <div>
           <h1>Peer Chess</h1>
-          <div class="subtitle">링크로 연결하는 P2P 체스</div>
+          <div class="subtitle">링크로 연결하는 실시간 온라인 체스</div>
         </div>
       </div>
       <div class="status-pill"><span id="statusDot" class="dot"></span><span id="networkStatus">오프라인 대국</span></div>
@@ -848,21 +813,10 @@
               <div id="joinStatusText" class="hint"></div>
             </div>
 
-            <details class="advanced-settings">
-              <summary>고급 연결 설정</summary>
-              <div class="hint">기본 STUN과 TURN 중계 서버가 자동 적용됩니다. 특정 학교망에서 기본 중계까지 차단될 때만 별도로 발급받은 TURN 정보를 두 기기에 동일하게 입력하세요.</div>
-              <div class="field">
-                <label class="label" for="turnUrl">TURN 서버 주소</label>
-                <input id="turnUrl" class="full-input" type="text" autocomplete="off" placeholder="turns:example.com:443">
-              </div>
-              <div class="row">
-                <input id="turnUsername" type="text" autocomplete="off" placeholder="사용자 이름">
-                <input id="turnCredential" type="password" autocomplete="off" placeholder="비밀번호">
-              </div>
-              <button id="saveTurnBtn" type="button">TURN 설정 저장</button>
-            </details>
-
-            <div class="hint">PeerJS 시그널링과 다중 STUN, UDP·TCP·TLS TURN 경로를 함께 사용합니다. 직접 연결이 지연되면 TURN 중계로 자동 전환됩니다.</div>
+            <div class="advanced-settings">
+              <div class="connection-note">Firebase 실시간 서버를 통해 대국을 동기화합니다. 두 기기가 서로 직접 연결되지 않으므로 서로 다른 와이파이, LTE, 5G 환경에서도 같은 링크로 접속할 수 있습니다.</div>
+              <div class="hint">링크를 가장 먼저 연 한 명이 상대가 되고, 이후 접속자는 자동으로 관전자가 됩니다. 최초 상대는 같은 브라우저에서 새로고침하거나 다시 접속해도 자리가 복구됩니다.</div>
+            </div>
           </div>
         </section>
 
@@ -911,53 +865,53 @@
 
   <div id="toast" class="toast"></div>
 
-  <script>
-/* PeerJS 1.5.5, MIT License */
-(()=>{function e(e,t,n,r){Object.defineProperty(e,t,{get:n,set:r,enumerable:!0,configurable:!0})}function t(e){return e&&e.__esModule?e.default:e}class n{constructor(){this.chunkedMTU=16300,this._dataCount=1,this.chunk=e=>{let t=[],n=e.byteLength,r=Math.ceil(n/this.chunkedMTU),i=0,s=0;for(;s<n;){let o=Math.min(n,s+this.chunkedMTU),a=e.slice(s,o),c={__peerData:this._dataCount,n:i,data:a,total:r};t.push(c),s=o,i++}return this._dataCount++,t}}}class r{append_buffer(e){this.flush(),this._parts.push(e)}append(e){this._pieces.push(e)}flush(){if(this._pieces.length>0){let e=new Uint8Array(this._pieces);this._parts.push(e),this._pieces=[]}}toArrayBuffer(){let e=[];for(let t of this._parts)e.push(t);return function(e){let t=0;for(let n of e)t+=n.byteLength;let n=new Uint8Array(t),r=0;for(let t of e){let e=new Uint8Array(t.buffer,t.byteOffset,t.byteLength);n.set(e,r),r+=t.byteLength}return n}(e).buffer}constructor(){this.encoder=new TextEncoder,this._pieces=[],this._parts=[]}}function i(e){return new o(e).unpack()}function s(e){let t=new a,n=t.pack(e);return n instanceof Promise?n.then(()=>t.getBuffer()):t.getBuffer()}class o{unpack(){let e,t=this.unpack_uint8();if(t<128)return t;if((224^t)<32)return(224^t)-32;if((e=160^t)<=15)return this.unpack_raw(e);if((e=176^t)<=15)return this.unpack_string(e);if((e=144^t)<=15)return this.unpack_array(e);if((e=128^t)<=15)return this.unpack_map(e);switch(t){case 192:return null;case 193:case 212:case 213:case 214:case 215:return;case 194:return!1;case 195:return!0;case 202:return this.unpack_float();case 203:return this.unpack_double();case 204:return this.unpack_uint8();case 205:return this.unpack_uint16();case 206:return this.unpack_uint32();case 207:return this.unpack_uint64();case 208:return this.unpack_int8();case 209:return this.unpack_int16();case 210:return this.unpack_int32();case 211:return this.unpack_int64();case 216:return e=this.unpack_uint16(),this.unpack_string(e);case 217:return e=this.unpack_uint32(),this.unpack_string(e);case 218:return e=this.unpack_uint16(),this.unpack_raw(e);case 219:return e=this.unpack_uint32(),this.unpack_raw(e);case 220:return e=this.unpack_uint16(),this.unpack_array(e);case 221:return e=this.unpack_uint32(),this.unpack_array(e);case 222:return e=this.unpack_uint16(),this.unpack_map(e);case 223:return e=this.unpack_uint32(),this.unpack_map(e)}}unpack_uint8(){let e=255&this.dataView[this.index];return this.index++,e}unpack_uint16(){let e=this.read(2),t=(255&e[0])*256+(255&e[1]);return this.index+=2,t}unpack_uint32(){let e=this.read(4),t=((256*e[0]+e[1])*256+e[2])*256+e[3];return this.index+=4,t}unpack_uint64(){let e=this.read(8),t=((((((256*e[0]+e[1])*256+e[2])*256+e[3])*256+e[4])*256+e[5])*256+e[6])*256+e[7];return this.index+=8,t}unpack_int8(){let e=this.unpack_uint8();return e<128?e:e-256}unpack_int16(){let e=this.unpack_uint16();return e<32768?e:e-65536}unpack_int32(){let e=this.unpack_uint32();return e<0x80000000?e:e-0x100000000}unpack_int64(){let e=this.unpack_uint64();return e<0x8000000000000000?e:e-0xffffffffffffffff}unpack_raw(e){if(this.length<this.index+e)throw Error(`BinaryPackFailure: index is out of range ${this.index} ${e} ${this.length}`);let t=this.dataBuffer.slice(this.index,this.index+e);return this.index+=e,t}unpack_string(e){let t,n,r=this.read(e),i=0,s="";for(;i<e;)(t=r[i])<160?(n=t,i++):(192^t)<32?(n=(31&t)<<6|63&r[i+1],i+=2):(224^t)<16?(n=(15&t)<<12|(63&r[i+1])<<6|63&r[i+2],i+=3):(n=(7&t)<<18|(63&r[i+1])<<12|(63&r[i+2])<<6|63&r[i+3],i+=4),s+=String.fromCodePoint(n);return this.index+=e,s}unpack_array(e){let t=Array(e);for(let n=0;n<e;n++)t[n]=this.unpack();return t}unpack_map(e){let t={};for(let n=0;n<e;n++)t[this.unpack()]=this.unpack();return t}unpack_float(){let e=this.unpack_uint32();return(0==e>>31?1:-1)*(8388607&e|8388608)*2**((e>>23&255)-127-23)}unpack_double(){let e=this.unpack_uint32(),t=this.unpack_uint32(),n=(e>>20&2047)-1023;return(0==e>>31?1:-1)*((1048575&e|1048576)*2**(n-20)+t*2**(n-52))}read(e){let t=this.index;if(t+e<=this.length)return this.dataView.subarray(t,t+e);throw Error("BinaryPackFailure: read index out of range")}constructor(e){this.index=0,this.dataBuffer=e,this.dataView=new Uint8Array(this.dataBuffer),this.length=this.dataBuffer.byteLength}}class a{getBuffer(){return this._bufferBuilder.toArrayBuffer()}pack(e){if("string"==typeof e)this.pack_string(e);else if("number"==typeof e)Math.floor(e)===e?this.pack_integer(e):this.pack_double(e);else if("boolean"==typeof e)!0===e?this._bufferBuilder.append(195):!1===e&&this._bufferBuilder.append(194);else if(void 0===e)this._bufferBuilder.append(192);else if("object"==typeof e)if(null===e)this._bufferBuilder.append(192);else{let t=e.constructor;if(e instanceof Array){let t=this.pack_array(e);if(t instanceof Promise)return t.then(()=>this._bufferBuilder.flush())}else if(e instanceof ArrayBuffer)this.pack_bin(new Uint8Array(e));else if("BYTES_PER_ELEMENT"in e)this.pack_bin(new Uint8Array(e.buffer,e.byteOffset,e.byteLength));else if(e instanceof Date)this.pack_string(e.toString());else if(e instanceof Blob)return e.arrayBuffer().then(e=>{this.pack_bin(new Uint8Array(e)),this._bufferBuilder.flush()});else if(t==Object||t.toString().startsWith("class")){let t=this.pack_object(e);if(t instanceof Promise)return t.then(()=>this._bufferBuilder.flush())}else throw Error(`Type "${t.toString()}" not yet supported`)}else throw Error(`Type "${typeof e}" not yet supported`);this._bufferBuilder.flush()}pack_bin(e){let t=e.length;if(t<=15)this.pack_uint8(160+t);else if(t<=65535)this._bufferBuilder.append(218),this.pack_uint16(t);else if(t<=0xffffffff)this._bufferBuilder.append(219),this.pack_uint32(t);else throw Error("Invalid length");this._bufferBuilder.append_buffer(e)}pack_string(e){let t=this._textEncoder.encode(e),n=t.length;if(n<=15)this.pack_uint8(176+n);else if(n<=65535)this._bufferBuilder.append(216),this.pack_uint16(n);else if(n<=0xffffffff)this._bufferBuilder.append(217),this.pack_uint32(n);else throw Error("Invalid length");this._bufferBuilder.append_buffer(t)}pack_array(e){let t=e.length;if(t<=15)this.pack_uint8(144+t);else if(t<=65535)this._bufferBuilder.append(220),this.pack_uint16(t);else if(t<=0xffffffff)this._bufferBuilder.append(221),this.pack_uint32(t);else throw Error("Invalid length");let n=r=>{if(r<t){let t=this.pack(e[r]);return t instanceof Promise?t.then(()=>n(r+1)):n(r+1)}};return n(0)}pack_integer(e){if(e>=-32&&e<=127)this._bufferBuilder.append(255&e);else if(e>=0&&e<=255)this._bufferBuilder.append(204),this.pack_uint8(e);else if(e>=-128&&e<=127)this._bufferBuilder.append(208),this.pack_int8(e);else if(e>=0&&e<=65535)this._bufferBuilder.append(205),this.pack_uint16(e);else if(e>=-32768&&e<=32767)this._bufferBuilder.append(209),this.pack_int16(e);else if(e>=0&&e<=0xffffffff)this._bufferBuilder.append(206),this.pack_uint32(e);else if(e>=-0x80000000&&e<=0x7fffffff)this._bufferBuilder.append(210),this.pack_int32(e);else if(e>=-0x8000000000000000&&e<=0x8000000000000000)this._bufferBuilder.append(211),this.pack_int64(e);else if(e>=0&&e<=0xffffffffffffffff)this._bufferBuilder.append(207),this.pack_uint64(e);else throw Error("Invalid integer")}pack_double(e){let t=0;e<0&&(t=1,e=-e);let n=Math.floor(Math.log(e)/Math.LN2),r=Math.floor((e/2**n-1)*0x10000000000000),i=t<<31|n+1023<<20|r/0x100000000&1048575;this._bufferBuilder.append(203),this.pack_int32(i),this.pack_int32(r%0x100000000)}pack_object(e){let t=Object.keys(e),n=t.length;if(n<=15)this.pack_uint8(128+n);else if(n<=65535)this._bufferBuilder.append(222),this.pack_uint16(n);else if(n<=0xffffffff)this._bufferBuilder.append(223),this.pack_uint32(n);else throw Error("Invalid length");let r=n=>{if(n<t.length){let i=t[n];if(e.hasOwnProperty(i)){this.pack(i);let t=this.pack(e[i]);if(t instanceof Promise)return t.then(()=>r(n+1))}return r(n+1)}};return r(0)}pack_uint8(e){this._bufferBuilder.append(e)}pack_uint16(e){this._bufferBuilder.append(e>>8),this._bufferBuilder.append(255&e)}pack_uint32(e){let t=0|e;this._bufferBuilder.append((0xff000000&t)>>>24),this._bufferBuilder.append((0xff0000&t)>>>16),this._bufferBuilder.append((65280&t)>>>8),this._bufferBuilder.append(255&t)}pack_uint64(e){let t=e/0x100000000,n=e%0x100000000;this._bufferBuilder.append((0xff000000&t)>>>24),this._bufferBuilder.append((0xff0000&t)>>>16),this._bufferBuilder.append((65280&t)>>>8),this._bufferBuilder.append(255&t),this._bufferBuilder.append((0xff000000&n)>>>24),this._bufferBuilder.append((0xff0000&n)>>>16),this._bufferBuilder.append((65280&n)>>>8),this._bufferBuilder.append(255&n)}pack_int8(e){this._bufferBuilder.append(255&e)}pack_int16(e){this._bufferBuilder.append((65280&e)>>8),this._bufferBuilder.append(255&e)}pack_int32(e){this._bufferBuilder.append(e>>>24&255),this._bufferBuilder.append((0xff0000&e)>>>16),this._bufferBuilder.append((65280&e)>>>8),this._bufferBuilder.append(255&e)}pack_int64(e){let t=Math.floor(e/0x100000000),n=e%0x100000000;this._bufferBuilder.append((0xff000000&t)>>>24),this._bufferBuilder.append((0xff0000&t)>>>16),this._bufferBuilder.append((65280&t)>>>8),this._bufferBuilder.append(255&t),this._bufferBuilder.append((0xff000000&n)>>>24),this._bufferBuilder.append((0xff0000&n)>>>16),this._bufferBuilder.append((65280&n)>>>8),this._bufferBuilder.append(255&n)}constructor(){this._bufferBuilder=new r,this._textEncoder=new TextEncoder}}"use strict";let c=!0,p=!0;function d(e,t,n){let r=e.match(t);return r&&r.length>=n&&parseInt(r[n],10)}function l(e,t,n){if(!e.RTCPeerConnection)return;let r=e.RTCPeerConnection.prototype,i=r.addEventListener;r.addEventListener=function(e,r){if(e!==t)return i.apply(this,arguments);let s=e=>{let t=n(e);t&&(r.handleEvent?r.handleEvent(t):r(t))};return this._eventMap=this._eventMap||{},this._eventMap[t]||(this._eventMap[t]=new Map),this._eventMap[t].set(r,s),i.apply(this,[e,s])};let s=r.removeEventListener;r.removeEventListener=function(e,n){if(e!==t||!this._eventMap||!this._eventMap[t]||!this._eventMap[t].has(n))return s.apply(this,arguments);let r=this._eventMap[t].get(n);return this._eventMap[t].delete(n),0===this._eventMap[t].size&&delete this._eventMap[t],0===Object.keys(this._eventMap).length&&delete this._eventMap,s.apply(this,[e,r])},Object.defineProperty(r,"on"+t,{get(){return this["_on"+t]},set(e){this["_on"+t]&&(this.removeEventListener(t,this["_on"+t]),delete this["_on"+t]),e&&this.addEventListener(t,this["_on"+t]=e)},enumerable:!0,configurable:!0})}function h(e){return"boolean"!=typeof e?Error("Argument type: "+typeof e+". Please use a boolean."):(c=e,e?"adapter.js logging disabled":"adapter.js logging enabled")}function u(e){return"boolean"!=typeof e?Error("Argument type: "+typeof e+". Please use a boolean."):(p=!e,"adapter.js deprecation warnings "+(e?"disabled":"enabled"))}function f(){"object"==typeof window&&(c||"undefined"!=typeof console&&"function"==typeof console.log&&console.log.apply(console,arguments))}function m(e,t){p&&console.warn(e+" is deprecated, please use "+t+" instead.")}function _(e){return"[object Object]"===Object.prototype.toString.call(e)}function g(e,t,n){let r=n?"outbound-rtp":"inbound-rtp",i=new Map;if(null===t)return i;let s=[];return e.forEach(e=>{"track"===e.type&&e.trackIdentifier===t.id&&s.push(e)}),s.forEach(t=>{e.forEach(n=>{n.type===r&&n.trackId===t.id&&function e(t,n,r){!n||r.has(n.id)||(r.set(n.id,n),Object.keys(n).forEach(i=>{i.endsWith("Id")?e(t,t.get(n[i]),r):i.endsWith("Ids")&&n[i].forEach(n=>{e(t,t.get(n),r)})}))}(e,n,i)})}),i}"use strict";var y={};function C(e,t){let n=e&&e.navigator;if(!n.mediaDevices)return;let r=function(e){if("object"!=typeof e||e.mandatory||e.optional)return e;let t={};return Object.keys(e).forEach(n=>{if("require"===n||"advanced"===n||"mediaSource"===n)return;let r="object"==typeof e[n]?e[n]:{ideal:e[n]};void 0!==r.exact&&"number"==typeof r.exact&&(r.min=r.max=r.exact);let i=function(e,t){return e?e+t.charAt(0).toUpperCase()+t.slice(1):"deviceId"===t?"sourceId":t};if(void 0!==r.ideal){t.optional=t.optional||[];let e={};"number"==typeof r.ideal?(e[i("min",n)]=r.ideal,t.optional.push(e),(e={})[i("max",n)]=r.ideal):e[i("",n)]=r.ideal,t.optional.push(e)}void 0!==r.exact&&"number"!=typeof r.exact?(t.mandatory=t.mandatory||{},t.mandatory[i("",n)]=r.exact):["min","max"].forEach(e=>{void 0!==r[e]&&(t.mandatory=t.mandatory||{},t.mandatory[i(e,n)]=r[e])})}),e.advanced&&(t.optional=(t.optional||[]).concat(e.advanced)),t},i=function(e,i){if(t.version>=61)return i(e);if((e=JSON.parse(JSON.stringify(e)))&&"object"==typeof e.audio){let t=function(e,t,n){t in e&&!(n in e)&&(e[n]=e[t],delete e[t])};t((e=JSON.parse(JSON.stringify(e))).audio,"autoGainControl","googAutoGainControl"),t(e.audio,"noiseSuppression","googNoiseSuppression"),e.audio=r(e.audio)}if(e&&"object"==typeof e.video){let s=e.video.facingMode;s=s&&("object"==typeof s?s:{ideal:s});let o=t.version<66;if(s&&("user"===s.exact||"environment"===s.exact||"user"===s.ideal||"environment"===s.ideal)&&!(n.mediaDevices.getSupportedConstraints&&n.mediaDevices.getSupportedConstraints().facingMode&&!o)){let t;if(delete e.video.facingMode,"environment"===s.exact||"environment"===s.ideal?t=["back","rear"]:("user"===s.exact||"user"===s.ideal)&&(t=["front"]),t)return n.mediaDevices.enumerateDevices().then(n=>{let o=(n=n.filter(e=>"videoinput"===e.kind)).find(e=>t.some(t=>e.label.toLowerCase().includes(t)));return!o&&n.length&&t.includes("back")&&(o=n[n.length-1]),o&&(e.video.deviceId=s.exact?{exact:o.deviceId}:{ideal:o.deviceId}),e.video=r(e.video),f("chrome: "+JSON.stringify(e)),i(e)})}e.video=r(e.video)}return f("chrome: "+JSON.stringify(e)),i(e)},s=function(e){return t.version>=64?e:{name:({PermissionDeniedError:"NotAllowedError",PermissionDismissedError:"NotAllowedError",InvalidStateError:"NotAllowedError",DevicesNotFoundError:"NotFoundError",ConstraintNotSatisfiedError:"OverconstrainedError",TrackStartError:"NotReadableError",MediaDeviceFailedDueToShutdown:"NotAllowedError",MediaDeviceKillSwitchOn:"NotAllowedError",TabCaptureError:"AbortError",ScreenCaptureError:"AbortError",DeviceCaptureError:"AbortError"})[e.name]||e.name,message:e.message,constraint:e.constraint||e.constraintName,toString(){return this.name+(this.message&&": ")+this.message}}};if(n.getUserMedia=(function(e,t,r){i(e,e=>{n.webkitGetUserMedia(e,t,e=>{r&&r(s(e))})})}).bind(n),n.mediaDevices.getUserMedia){let e=n.mediaDevices.getUserMedia.bind(n.mediaDevices);n.mediaDevices.getUserMedia=function(t){return i(t,t=>e(t).then(e=>{if(t.audio&&!e.getAudioTracks().length||t.video&&!e.getVideoTracks().length)throw e.getTracks().forEach(e=>{e.stop()}),new DOMException("","NotFoundError");return e},e=>Promise.reject(s(e))))}}}"use strict";function v(e){e.MediaStream=e.MediaStream||e.webkitMediaStream}function b(e){if("object"!=typeof e||!e.RTCPeerConnection||"ontrack"in e.RTCPeerConnection.prototype)l(e,"track",e=>(e.transceiver||Object.defineProperty(e,"transceiver",{value:{receiver:e.receiver}}),e));else{Object.defineProperty(e.RTCPeerConnection.prototype,"ontrack",{get(){return this._ontrack},set(e){this._ontrack&&this.removeEventListener("track",this._ontrack),this.addEventListener("track",this._ontrack=e)},enumerable:!0,configurable:!0});let t=e.RTCPeerConnection.prototype.setRemoteDescription;e.RTCPeerConnection.prototype.setRemoteDescription=function(){return this._ontrackpoly||(this._ontrackpoly=t=>{t.stream.addEventListener("addtrack",n=>{let r;r=e.RTCPeerConnection.prototype.getReceivers?this.getReceivers().find(e=>e.track&&e.track.id===n.track.id):{track:n.track};let i=new Event("track");i.track=n.track,i.receiver=r,i.transceiver={receiver:r},i.streams=[t.stream],this.dispatchEvent(i)}),t.stream.getTracks().forEach(n=>{let r;r=e.RTCPeerConnection.prototype.getReceivers?this.getReceivers().find(e=>e.track&&e.track.id===n.id):{track:n};let i=new Event("track");i.track=n,i.receiver=r,i.transceiver={receiver:r},i.streams=[t.stream],this.dispatchEvent(i)})},this.addEventListener("addstream",this._ontrackpoly)),t.apply(this,arguments)}}}function T(e){if("object"==typeof e&&e.RTCPeerConnection&&!("getSenders"in e.RTCPeerConnection.prototype)&&"createDTMFSender"in e.RTCPeerConnection.prototype){let t=function(e,t){return{track:t,get dtmf(){return void 0===this._dtmf&&("audio"===t.kind?this._dtmf=e.createDTMFSender(t):this._dtmf=null),this._dtmf},_pc:e}};if(!e.RTCPeerConnection.prototype.getSenders){e.RTCPeerConnection.prototype.getSenders=function(){return this._senders=this._senders||[],this._senders.slice()};let n=e.RTCPeerConnection.prototype.addTrack;e.RTCPeerConnection.prototype.addTrack=function(e,r){let i=n.apply(this,arguments);return i||(i=t(this,e),this._senders.push(i)),i};let r=e.RTCPeerConnection.prototype.removeTrack;e.RTCPeerConnection.prototype.removeTrack=function(e){r.apply(this,arguments);let t=this._senders.indexOf(e);-1!==t&&this._senders.splice(t,1)}}let n=e.RTCPeerConnection.prototype.addStream;e.RTCPeerConnection.prototype.addStream=function(e){this._senders=this._senders||[],n.apply(this,[e]),e.getTracks().forEach(e=>{this._senders.push(t(this,e))})};let r=e.RTCPeerConnection.prototype.removeStream;e.RTCPeerConnection.prototype.removeStream=function(e){this._senders=this._senders||[],r.apply(this,[e]),e.getTracks().forEach(e=>{let t=this._senders.find(t=>t.track===e);t&&this._senders.splice(this._senders.indexOf(t),1)})}}else if("object"==typeof e&&e.RTCPeerConnection&&"getSenders"in e.RTCPeerConnection.prototype&&"createDTMFSender"in e.RTCPeerConnection.prototype&&e.RTCRtpSender&&!("dtmf"in e.RTCRtpSender.prototype)){let t=e.RTCPeerConnection.prototype.getSenders;e.RTCPeerConnection.prototype.getSenders=function(){let e=t.apply(this,[]);return e.forEach(e=>e._pc=this),e},Object.defineProperty(e.RTCRtpSender.prototype,"dtmf",{get(){return void 0===this._dtmf&&("audio"===this.track.kind?this._dtmf=this._pc.createDTMFSender(this.track):this._dtmf=null),this._dtmf}})}}function S(e){if(!("object"==typeof e&&e.RTCPeerConnection&&e.RTCRtpSender&&e.RTCRtpReceiver))return;if(!("getStats"in e.RTCRtpSender.prototype)){let t=e.RTCPeerConnection.prototype.getSenders;t&&(e.RTCPeerConnection.prototype.getSenders=function(){let e=t.apply(this,[]);return e.forEach(e=>e._pc=this),e});let n=e.RTCPeerConnection.prototype.addTrack;n&&(e.RTCPeerConnection.prototype.addTrack=function(){let e=n.apply(this,arguments);return e._pc=this,e}),e.RTCRtpSender.prototype.getStats=function(){let e=this;return this._pc.getStats().then(t=>g(t,e.track,!0))}}if(!("getStats"in e.RTCRtpReceiver.prototype)){let t=e.RTCPeerConnection.prototype.getReceivers;t&&(e.RTCPeerConnection.prototype.getReceivers=function(){let e=t.apply(this,[]);return e.forEach(e=>e._pc=this),e}),l(e,"track",e=>(e.receiver._pc=e.srcElement,e)),e.RTCRtpReceiver.prototype.getStats=function(){let e=this;return this._pc.getStats().then(t=>g(t,e.track,!1))}}if(!("getStats"in e.RTCRtpSender.prototype&&"getStats"in e.RTCRtpReceiver.prototype))return;let t=e.RTCPeerConnection.prototype.getStats;e.RTCPeerConnection.prototype.getStats=function(){if(arguments.length>0&&arguments[0]instanceof e.MediaStreamTrack){let e,t,n,r=arguments[0];return(this.getSenders().forEach(t=>{t.track===r&&(e?n=!0:e=t)}),this.getReceivers().forEach(e=>(e.track===r&&(t?n=!0:t=e),e.track===r)),n||e&&t)?Promise.reject(new DOMException("There are more than one sender or receiver for the track.","InvalidAccessError")):e?e.getStats():t?t.getStats():Promise.reject(new DOMException("There is no sender or receiver for the track.","InvalidAccessError"))}return t.apply(this,arguments)}}function k(e){e.RTCPeerConnection.prototype.getLocalStreams=function(){return this._shimmedLocalStreams=this._shimmedLocalStreams||{},Object.keys(this._shimmedLocalStreams).map(e=>this._shimmedLocalStreams[e][0])};let t=e.RTCPeerConnection.prototype.addTrack;e.RTCPeerConnection.prototype.addTrack=function(e,n){if(!n)return t.apply(this,arguments);this._shimmedLocalStreams=this._shimmedLocalStreams||{};let r=t.apply(this,arguments);return this._shimmedLocalStreams[n.id]?-1===this._shimmedLocalStreams[n.id].indexOf(r)&&this._shimmedLocalStreams[n.id].push(r):this._shimmedLocalStreams[n.id]=[n,r],r};let n=e.RTCPeerConnection.prototype.addStream;e.RTCPeerConnection.prototype.addStream=function(e){this._shimmedLocalStreams=this._shimmedLocalStreams||{},e.getTracks().forEach(e=>{if(this.getSenders().find(t=>t.track===e))throw new DOMException("Track already exists.","InvalidAccessError")});let t=this.getSenders();n.apply(this,arguments);let r=this.getSenders().filter(e=>-1===t.indexOf(e));this._shimmedLocalStreams[e.id]=[e].concat(r)};let r=e.RTCPeerConnection.prototype.removeStream;e.RTCPeerConnection.prototype.removeStream=function(e){return this._shimmedLocalStreams=this._shimmedLocalStreams||{},delete this._shimmedLocalStreams[e.id],r.apply(this,arguments)};let i=e.RTCPeerConnection.prototype.removeTrack;e.RTCPeerConnection.prototype.removeTrack=function(e){return this._shimmedLocalStreams=this._shimmedLocalStreams||{},e&&Object.keys(this._shimmedLocalStreams).forEach(t=>{let n=this._shimmedLocalStreams[t].indexOf(e);-1!==n&&this._shimmedLocalStreams[t].splice(n,1),1===this._shimmedLocalStreams[t].length&&delete this._shimmedLocalStreams[t]}),i.apply(this,arguments)}}function R(e,t){if(!e.RTCPeerConnection)return;if(e.RTCPeerConnection.prototype.addTrack&&t.version>=65)return k(e);let n=e.RTCPeerConnection.prototype.getLocalStreams;e.RTCPeerConnection.prototype.getLocalStreams=function(){let e=n.apply(this);return this._reverseStreams=this._reverseStreams||{},e.map(e=>this._reverseStreams[e.id])};let r=e.RTCPeerConnection.prototype.addStream;e.RTCPeerConnection.prototype.addStream=function(t){if(this._streams=this._streams||{},this._reverseStreams=this._reverseStreams||{},t.getTracks().forEach(e=>{if(this.getSenders().find(t=>t.track===e))throw new DOMException("Track already exists.","InvalidAccessError")}),!this._reverseStreams[t.id]){let n=new e.MediaStream(t.getTracks());this._streams[t.id]=n,this._reverseStreams[n.id]=t,t=n}r.apply(this,[t])};let i=e.RTCPeerConnection.prototype.removeStream;function s(e,t){let n=t.sdp;return Object.keys(e._reverseStreams||[]).forEach(t=>{let r=e._reverseStreams[t],i=e._streams[r.id];n=n.replace(RegExp(i.id,"g"),r.id)}),new RTCSessionDescription({type:t.type,sdp:n})}e.RTCPeerConnection.prototype.removeStream=function(e){this._streams=this._streams||{},this._reverseStreams=this._reverseStreams||{},i.apply(this,[this._streams[e.id]||e]),delete this._reverseStreams[this._streams[e.id]?this._streams[e.id].id:e.id],delete this._streams[e.id]},e.RTCPeerConnection.prototype.addTrack=function(t,n){if("closed"===this.signalingState)throw new DOMException("The RTCPeerConnection's signalingState is 'closed'.","InvalidStateError");let r=[].slice.call(arguments,1);if(1!==r.length||!r[0].getTracks().find(e=>e===t))throw new DOMException("The adapter.js addTrack polyfill only supports a single  stream which is associated with the specified track.","NotSupportedError");if(this.getSenders().find(e=>e.track===t))throw new DOMException("Track already exists.","InvalidAccessError");this._streams=this._streams||{},this._reverseStreams=this._reverseStreams||{};let i=this._streams[n.id];if(i)i.addTrack(t),Promise.resolve().then(()=>{this.dispatchEvent(new Event("negotiationneeded"))});else{let r=new e.MediaStream([t]);this._streams[n.id]=r,this._reverseStreams[r.id]=n,this.addStream(r)}return this.getSenders().find(e=>e.track===t)},["createOffer","createAnswer"].forEach(function(t){let n=e.RTCPeerConnection.prototype[t];e.RTCPeerConnection.prototype[t]=({[t](){let e=arguments,t=arguments.length&&"function"==typeof arguments[0];return t?n.apply(this,[t=>{let n=s(this,t);e[0].apply(null,[n])},t=>{e[1]&&e[1].apply(null,t)},arguments[2]]):n.apply(this,arguments).then(e=>s(this,e))}})[t]});let o=e.RTCPeerConnection.prototype.setLocalDescription;e.RTCPeerConnection.prototype.setLocalDescription=function(){var e,t;let n;return arguments.length&&arguments[0].type?(arguments[0]=(e=this,t=arguments[0],n=t.sdp,Object.keys(e._reverseStreams||[]).forEach(t=>{let r=e._reverseStreams[t],i=e._streams[r.id];n=n.replace(RegExp(r.id,"g"),i.id)}),new RTCSessionDescription({type:t.type,sdp:n})),o.apply(this,arguments)):o.apply(this,arguments)};let a=Object.getOwnPropertyDescriptor(e.RTCPeerConnection.prototype,"localDescription");Object.defineProperty(e.RTCPeerConnection.prototype,"localDescription",{get(){let e=a.get.apply(this);return""===e.type?e:s(this,e)}}),e.RTCPeerConnection.prototype.removeTrack=function(e){let t;if("closed"===this.signalingState)throw new DOMException("The RTCPeerConnection's signalingState is 'closed'.","InvalidStateError");if(!e._pc)throw new DOMException("Argument 1 of RTCPeerConnection.removeTrack does not implement interface RTCRtpSender.","TypeError");if(e._pc!==this)throw new DOMException("Sender was not created by this connection.","InvalidAccessError");this._streams=this._streams||{},Object.keys(this._streams).forEach(n=>{this._streams[n].getTracks().find(t=>e.track===t)&&(t=this._streams[n])}),t&&(1===t.getTracks().length?this.removeStream(this._reverseStreams[t.id]):t.removeTrack(e.track),this.dispatchEvent(new Event("negotiationneeded")))}}function P(e,t){!e.RTCPeerConnection&&e.webkitRTCPeerConnection&&(e.RTCPeerConnection=e.webkitRTCPeerConnection),e.RTCPeerConnection&&t.version<53&&["setLocalDescription","setRemoteDescription","addIceCandidate"].forEach(function(t){let n=e.RTCPeerConnection.prototype[t];e.RTCPeerConnection.prototype[t]=({[t](){return arguments[0]=new("addIceCandidate"===t?e.RTCIceCandidate:e.RTCSessionDescription)(arguments[0]),n.apply(this,arguments)}})[t]})}function w(e,t){l(e,"negotiationneeded",e=>{let n=e.target;if(!(t.version<72)&&(!n.getConfiguration||"plan-b"!==n.getConfiguration().sdpSemantics)||"stable"===n.signalingState)return e})}"use strict";e(y,"shimMediaStream",()=>v),e(y,"shimOnTrack",()=>b),e(y,"shimGetSendersWithDtmf",()=>T),e(y,"shimSenderReceiverGetStats",()=>S),e(y,"shimAddTrackRemoveTrackWithNative",()=>k),e(y,"shimAddTrackRemoveTrack",()=>R),e(y,"shimPeerConnection",()=>P),e(y,"fixNegotiationNeeded",()=>w),e(y,"shimGetUserMedia",()=>C);var E={};function x(e,t){let n=e&&e.navigator,r=e&&e.MediaStreamTrack;if(n.getUserMedia=function(e,t,r){m("navigator.getUserMedia","navigator.mediaDevices.getUserMedia"),n.mediaDevices.getUserMedia(e).then(t,r)},!(t.version>55&&"autoGainControl"in n.mediaDevices.getSupportedConstraints())){let e=function(e,t,n){t in e&&!(n in e)&&(e[n]=e[t],delete e[t])},t=n.mediaDevices.getUserMedia.bind(n.mediaDevices);if(n.mediaDevices.getUserMedia=function(n){return"object"==typeof n&&"object"==typeof n.audio&&(e((n=JSON.parse(JSON.stringify(n))).audio,"autoGainControl","mozAutoGainControl"),e(n.audio,"noiseSuppression","mozNoiseSuppression")),t(n)},r&&r.prototype.getSettings){let t=r.prototype.getSettings;r.prototype.getSettings=function(){let n=t.apply(this,arguments);return e(n,"mozAutoGainControl","autoGainControl"),e(n,"mozNoiseSuppression","noiseSuppression"),n}}if(r&&r.prototype.applyConstraints){let t=r.prototype.applyConstraints;r.prototype.applyConstraints=function(n){return"audio"===this.kind&&"object"==typeof n&&(e(n=JSON.parse(JSON.stringify(n)),"autoGainControl","mozAutoGainControl"),e(n,"noiseSuppression","mozNoiseSuppression")),t.apply(this,[n])}}}}"use strict";function D(e,t){e.navigator.mediaDevices&&"getDisplayMedia"in e.navigator.mediaDevices||e.navigator.mediaDevices&&(e.navigator.mediaDevices.getDisplayMedia=function(n){if(!(n&&n.video)){let e=new DOMException("getDisplayMedia without video constraints is undefined");return e.name="NotFoundError",e.code=8,Promise.reject(e)}return!0===n.video?n.video={mediaSource:t}:n.video.mediaSource=t,e.navigator.mediaDevices.getUserMedia(n)})}"use strict";function I(e){"object"==typeof e&&e.RTCTrackEvent&&"receiver"in e.RTCTrackEvent.prototype&&!("transceiver"in e.RTCTrackEvent.prototype)&&Object.defineProperty(e.RTCTrackEvent.prototype,"transceiver",{get(){return{receiver:this.receiver}}})}function M(e,t){if("object"!=typeof e||!(e.RTCPeerConnection||e.mozRTCPeerConnection))return;!e.RTCPeerConnection&&e.mozRTCPeerConnection&&(e.RTCPeerConnection=e.mozRTCPeerConnection),t.version<53&&["setLocalDescription","setRemoteDescription","addIceCandidate"].forEach(function(t){let n=e.RTCPeerConnection.prototype[t];e.RTCPeerConnection.prototype[t]=({[t](){return arguments[0]=new("addIceCandidate"===t?e.RTCIceCandidate:e.RTCSessionDescription)(arguments[0]),n.apply(this,arguments)}})[t]});let n={inboundrtp:"inbound-rtp",outboundrtp:"outbound-rtp",candidatepair:"candidate-pair",localcandidate:"local-candidate",remotecandidate:"remote-candidate"},r=e.RTCPeerConnection.prototype.getStats;e.RTCPeerConnection.prototype.getStats=function(){let[e,i,s]=arguments;return r.apply(this,[e||null]).then(e=>{if(t.version<53&&!i)try{e.forEach(e=>{e.type=n[e.type]||e.type})}catch(t){if("TypeError"!==t.name)throw t;e.forEach((t,r)=>{e.set(r,Object.assign({},t,{type:n[t.type]||t.type}))})}return e}).then(i,s)}}function O(e){if(!("object"==typeof e&&e.RTCPeerConnection&&e.RTCRtpSender)||e.RTCRtpSender&&"getStats"in e.RTCRtpSender.prototype)return;let t=e.RTCPeerConnection.prototype.getSenders;t&&(e.RTCPeerConnection.prototype.getSenders=function(){let e=t.apply(this,[]);return e.forEach(e=>e._pc=this),e});let n=e.RTCPeerConnection.prototype.addTrack;n&&(e.RTCPeerConnection.prototype.addTrack=function(){let e=n.apply(this,arguments);return e._pc=this,e}),e.RTCRtpSender.prototype.getStats=function(){return this.track?this._pc.getStats(this.track):Promise.resolve(new Map)}}function L(e){if(!("object"==typeof e&&e.RTCPeerConnection&&e.RTCRtpSender)||e.RTCRtpSender&&"getStats"in e.RTCRtpReceiver.prototype)return;let t=e.RTCPeerConnection.prototype.getReceivers;t&&(e.RTCPeerConnection.prototype.getReceivers=function(){let e=t.apply(this,[]);return e.forEach(e=>e._pc=this),e}),l(e,"track",e=>(e.receiver._pc=e.srcElement,e)),e.RTCRtpReceiver.prototype.getStats=function(){return this._pc.getStats(this.track)}}function A(e){!e.RTCPeerConnection||"removeStream"in e.RTCPeerConnection.prototype||(e.RTCPeerConnection.prototype.removeStream=function(e){m("removeStream","removeTrack"),this.getSenders().forEach(t=>{t.track&&e.getTracks().includes(t.track)&&this.removeTrack(t)})})}function j(e){e.DataChannel&&!e.RTCDataChannel&&(e.RTCDataChannel=e.DataChannel)}function B(e){if(!("object"==typeof e&&e.RTCPeerConnection))return;let t=e.RTCPeerConnection.prototype.addTransceiver;t&&(e.RTCPeerConnection.prototype.addTransceiver=function(){this.setParametersPromises=[];let e=arguments[1]&&arguments[1].sendEncodings;void 0===e&&(e=[]);let n=(e=[...e]).length>0;n&&e.forEach(e=>{if("rid"in e&&!/^[a-z0-9]{0,16}$/i.test(e.rid))throw TypeError("Invalid RID value provided.");if("scaleResolutionDownBy"in e&&!(parseFloat(e.scaleResolutionDownBy)>=1))throw RangeError("scale_resolution_down_by must be >= 1.0");if("maxFramerate"in e&&!(parseFloat(e.maxFramerate)>=0))throw RangeError("max_framerate must be >= 0.0")});let r=t.apply(this,arguments);if(n){let{sender:t}=r,n=t.getParameters();"encodings"in n&&(1!==n.encodings.length||0!==Object.keys(n.encodings[0]).length)||(n.encodings=e,t.sendEncodings=e,this.setParametersPromises.push(t.setParameters(n).then(()=>{delete t.sendEncodings}).catch(()=>{delete t.sendEncodings})))}return r})}function U(e){if(!("object"==typeof e&&e.RTCRtpSender))return;let t=e.RTCRtpSender.prototype.getParameters;t&&(e.RTCRtpSender.prototype.getParameters=function(){let e=t.apply(this,arguments);return"encodings"in e||(e.encodings=[].concat(this.sendEncodings||[{}])),e})}function F(e){if(!("object"==typeof e&&e.RTCPeerConnection))return;let t=e.RTCPeerConnection.prototype.createOffer;e.RTCPeerConnection.prototype.createOffer=function(){return this.setParametersPromises&&this.setParametersPromises.length?Promise.all(this.setParametersPromises).then(()=>t.apply(this,arguments)).finally(()=>{this.setParametersPromises=[]}):t.apply(this,arguments)}}function N(e){if(!("object"==typeof e&&e.RTCPeerConnection))return;let t=e.RTCPeerConnection.prototype.createAnswer;e.RTCPeerConnection.prototype.createAnswer=function(){return this.setParametersPromises&&this.setParametersPromises.length?Promise.all(this.setParametersPromises).then(()=>t.apply(this,arguments)).finally(()=>{this.setParametersPromises=[]}):t.apply(this,arguments)}}"use strict";e(E,"shimOnTrack",()=>I),e(E,"shimPeerConnection",()=>M),e(E,"shimSenderGetStats",()=>O),e(E,"shimReceiverGetStats",()=>L),e(E,"shimRemoveStream",()=>A),e(E,"shimRTCDataChannel",()=>j),e(E,"shimAddTransceiver",()=>B),e(E,"shimGetParameters",()=>U),e(E,"shimCreateOffer",()=>F),e(E,"shimCreateAnswer",()=>N),e(E,"shimGetUserMedia",()=>x),e(E,"shimGetDisplayMedia",()=>D);var z={};function $(e){if("object"==typeof e&&e.RTCPeerConnection){if("getLocalStreams"in e.RTCPeerConnection.prototype||(e.RTCPeerConnection.prototype.getLocalStreams=function(){return this._localStreams||(this._localStreams=[]),this._localStreams}),!("addStream"in e.RTCPeerConnection.prototype)){let t=e.RTCPeerConnection.prototype.addTrack;e.RTCPeerConnection.prototype.addStream=function(e){this._localStreams||(this._localStreams=[]),this._localStreams.includes(e)||this._localStreams.push(e),e.getAudioTracks().forEach(n=>t.call(this,n,e)),e.getVideoTracks().forEach(n=>t.call(this,n,e))},e.RTCPeerConnection.prototype.addTrack=function(e,...n){return n&&n.forEach(e=>{this._localStreams?this._localStreams.includes(e)||this._localStreams.push(e):this._localStreams=[e]}),t.apply(this,arguments)}}"removeStream"in e.RTCPeerConnection.prototype||(e.RTCPeerConnection.prototype.removeStream=function(e){this._localStreams||(this._localStreams=[]);let t=this._localStreams.indexOf(e);if(-1===t)return;this._localStreams.splice(t,1);let n=e.getTracks();this.getSenders().forEach(e=>{n.includes(e.track)&&this.removeTrack(e)})})}}function V(e){if("object"==typeof e&&e.RTCPeerConnection&&("getRemoteStreams"in e.RTCPeerConnection.prototype||(e.RTCPeerConnection.prototype.getRemoteStreams=function(){return this._remoteStreams?this._remoteStreams:[]}),!("onaddstream"in e.RTCPeerConnection.prototype))){Object.defineProperty(e.RTCPeerConnection.prototype,"onaddstream",{get(){return this._onaddstream},set(e){this._onaddstream&&(this.removeEventListener("addstream",this._onaddstream),this.removeEventListener("track",this._onaddstreampoly)),this.addEventListener("addstream",this._onaddstream=e),this.addEventListener("track",this._onaddstreampoly=e=>{e.streams.forEach(e=>{if(this._remoteStreams||(this._remoteStreams=[]),this._remoteStreams.includes(e))return;this._remoteStreams.push(e);let t=new Event("addstream");t.stream=e,this.dispatchEvent(t)})})}});let t=e.RTCPeerConnection.prototype.setRemoteDescription;e.RTCPeerConnection.prototype.setRemoteDescription=function(){let e=this;return this._onaddstreampoly||this.addEventListener("track",this._onaddstreampoly=function(t){t.streams.forEach(t=>{if(e._remoteStreams||(e._remoteStreams=[]),e._remoteStreams.indexOf(t)>=0)return;e._remoteStreams.push(t);let n=new Event("addstream");n.stream=t,e.dispatchEvent(n)})}),t.apply(e,arguments)}}}function G(e){if("object"!=typeof e||!e.RTCPeerConnection)return;let t=e.RTCPeerConnection.prototype,n=t.createOffer,r=t.createAnswer,i=t.setLocalDescription,s=t.setRemoteDescription,o=t.addIceCandidate;t.createOffer=function(e,t){let r=arguments.length>=2?arguments[2]:arguments[0],i=n.apply(this,[r]);return t?(i.then(e,t),Promise.resolve()):i},t.createAnswer=function(e,t){let n=arguments.length>=2?arguments[2]:arguments[0],i=r.apply(this,[n]);return t?(i.then(e,t),Promise.resolve()):i};let a=function(e,t,n){let r=i.apply(this,[e]);return n?(r.then(t,n),Promise.resolve()):r};t.setLocalDescription=a,t.setRemoteDescription=a=function(e,t,n){let r=s.apply(this,[e]);return n?(r.then(t,n),Promise.resolve()):r},t.addIceCandidate=function(e,t,n){let r=o.apply(this,[e]);return n?(r.then(t,n),Promise.resolve()):r}}function J(e){let t=e&&e.navigator;if(t.mediaDevices&&t.mediaDevices.getUserMedia){let e=t.mediaDevices,n=e.getUserMedia.bind(e);t.mediaDevices.getUserMedia=e=>n(W(e))}!t.getUserMedia&&t.mediaDevices&&t.mediaDevices.getUserMedia&&(t.getUserMedia=(function(e,n,r){t.mediaDevices.getUserMedia(e).then(n,r)}).bind(t))}function W(e){return e&&void 0!==e.video?Object.assign({},e,{video:function e(t){return _(t)?Object.keys(t).reduce(function(n,r){let i=_(t[r]),s=i?e(t[r]):t[r],o=i&&!Object.keys(s).length;return void 0===s||o?n:Object.assign(n,{[r]:s})},{}):t}(e.video)}):e}function Y(e){if(!e.RTCPeerConnection)return;let t=e.RTCPeerConnection;e.RTCPeerConnection=function(e,n){if(e&&e.iceServers){let t=[];for(let n=0;n<e.iceServers.length;n++){let r=e.iceServers[n];void 0===r.urls&&r.url?(m("RTCIceServer.url","RTCIceServer.urls"),(r=JSON.parse(JSON.stringify(r))).urls=r.url,delete r.url,t.push(r)):t.push(e.iceServers[n])}e.iceServers=t}return new t(e,n)},e.RTCPeerConnection.prototype=t.prototype,"generateCertificate"in t&&Object.defineProperty(e.RTCPeerConnection,"generateCertificate",{get:()=>t.generateCertificate})}function H(e){"object"==typeof e&&e.RTCTrackEvent&&"receiver"in e.RTCTrackEvent.prototype&&!("transceiver"in e.RTCTrackEvent.prototype)&&Object.defineProperty(e.RTCTrackEvent.prototype,"transceiver",{get(){return{receiver:this.receiver}}})}function K(e){let t=e.RTCPeerConnection.prototype.createOffer;e.RTCPeerConnection.prototype.createOffer=function(e){if(e){void 0!==e.offerToReceiveAudio&&(e.offerToReceiveAudio=!!e.offerToReceiveAudio);let t=this.getTransceivers().find(e=>"audio"===e.receiver.track.kind);!1===e.offerToReceiveAudio&&t?"sendrecv"===t.direction?t.setDirection?t.setDirection("sendonly"):t.direction="sendonly":"recvonly"===t.direction&&(t.setDirection?t.setDirection("inactive"):t.direction="inactive"):!0!==e.offerToReceiveAudio||t||this.addTransceiver("audio",{direction:"recvonly"}),void 0!==e.offerToReceiveVideo&&(e.offerToReceiveVideo=!!e.offerToReceiveVideo);let n=this.getTransceivers().find(e=>"video"===e.receiver.track.kind);!1===e.offerToReceiveVideo&&n?"sendrecv"===n.direction?n.setDirection?n.setDirection("sendonly"):n.direction="sendonly":"recvonly"===n.direction&&(n.setDirection?n.setDirection("inactive"):n.direction="inactive"):!0!==e.offerToReceiveVideo||n||this.addTransceiver("video",{direction:"recvonly"})}return t.apply(this,arguments)}}function X(e){"object"!=typeof e||e.AudioContext||(e.AudioContext=e.webkitAudioContext)}e(z,"shimLocalStreamsAPI",()=>$),e(z,"shimRemoteStreamsAPI",()=>V),e(z,"shimCallbacksAPI",()=>G),e(z,"shimGetUserMedia",()=>J),e(z,"shimConstraints",()=>W),e(z,"shimRTCIceServerUrls",()=>Y),e(z,"shimTrackEventTransceiver",()=>H),e(z,"shimCreateOfferLegacy",()=>K),e(z,"shimAudioContext",()=>X);var Q={};"use strict";e(Q,"shimRTCIceCandidate",()=>ee),e(Q,"shimRTCIceCandidateRelayProtocol",()=>et),e(Q,"shimMaxMessageSize",()=>en),e(Q,"shimSendThrowTypeError",()=>er),e(Q,"shimConnectionState",()=>ei),e(Q,"removeExtmapAllowMixed",()=>es),e(Q,"shimAddIceCandidateNullOrEmpty",()=>eo),e(Q,"shimParameterlessSetLocalDescription",()=>ea);var q={};"use strict";let Z={};function ee(e){if(!e.RTCIceCandidate||e.RTCIceCandidate&&"foundation"in e.RTCIceCandidate.prototype)return;let n=e.RTCIceCandidate;e.RTCIceCandidate=function(e){if("object"==typeof e&&e.candidate&&0===e.candidate.indexOf("a=")&&((e=JSON.parse(JSON.stringify(e))).candidate=e.candidate.substring(2)),e.candidate&&e.candidate.length){let r=new n(e),i=t(q).parseCandidate(e.candidate);for(let e in i)e in r||Object.defineProperty(r,e,{value:i[e]});return r.toJSON=function(){return{candidate:r.candidate,sdpMid:r.sdpMid,sdpMLineIndex:r.sdpMLineIndex,usernameFragment:r.usernameFragment}},r}return new n(e)},e.RTCIceCandidate.prototype=n.prototype,l(e,"icecandidate",t=>(t.candidate&&Object.defineProperty(t,"candidate",{value:new e.RTCIceCandidate(t.candidate),writable:"false"}),t))}function et(e){!e.RTCIceCandidate||e.RTCIceCandidate&&"relayProtocol"in e.RTCIceCandidate.prototype||l(e,"icecandidate",e=>{if(e.candidate){let n=t(q).parseCandidate(e.candidate.candidate);"relay"===n.type&&(e.candidate.relayProtocol=({0:"tls",1:"tcp",2:"udp"})[n.priority>>24])}return e})}function en(e,n){if(!e.RTCPeerConnection)return;"sctp"in e.RTCPeerConnection.prototype||Object.defineProperty(e.RTCPeerConnection.prototype,"sctp",{get(){return void 0===this._sctp?null:this._sctp}});let r=function(e){if(!e||!e.sdp)return!1;let n=t(q).splitSections(e.sdp);return n.shift(),n.some(e=>{let n=t(q).parseMLine(e);return n&&"application"===n.kind&&-1!==n.protocol.indexOf("SCTP")})},i=function(e){let t=e.sdp.match(/mozilla...THIS_IS_SDPARTA-(\d+)/);if(null===t||t.length<2)return -1;let n=parseInt(t[1],10);return n!=n?-1:n},s=function(e){let t=65536;return"firefox"===n.browser&&(t=n.version<57?-1===e?16384:0x7ffffff5:n.version<60?57===n.version?65535:65536:0x7ffffff5),t},o=function(e,r){let i=65536;"firefox"===n.browser&&57===n.version&&(i=65535);let s=t(q).matchPrefix(e.sdp,"a=max-message-size:");return s.length>0?i=parseInt(s[0].substring(19),10):"firefox"===n.browser&&-1!==r&&(i=0x7ffffff5),i},a=e.RTCPeerConnection.prototype.setRemoteDescription;e.RTCPeerConnection.prototype.setRemoteDescription=function(){if(this._sctp=null,"chrome"===n.browser&&n.version>=76){let{sdpSemantics:e}=this.getConfiguration();"plan-b"===e&&Object.defineProperty(this,"sctp",{get(){return void 0===this._sctp?null:this._sctp},enumerable:!0,configurable:!0})}if(r(arguments[0])){let e,t=i(arguments[0]),n=s(t),r=o(arguments[0],t);e=0===n&&0===r?Number.POSITIVE_INFINITY:0===n||0===r?Math.max(n,r):Math.min(n,r);let a={};Object.defineProperty(a,"maxMessageSize",{get:()=>e}),this._sctp=a}return a.apply(this,arguments)}}function er(e){if(!(e.RTCPeerConnection&&"createDataChannel"in e.RTCPeerConnection.prototype))return;function t(e,t){let n=e.send;e.send=function(){let r=arguments[0],i=r.length||r.size||r.byteLength;if("open"===e.readyState&&t.sctp&&i>t.sctp.maxMessageSize)throw TypeError("Message too large (can send a maximum of "+t.sctp.maxMessageSize+" bytes)");return n.apply(e,arguments)}}let n=e.RTCPeerConnection.prototype.createDataChannel;e.RTCPeerConnection.prototype.createDataChannel=function(){let e=n.apply(this,arguments);return t(e,this),e},l(e,"datachannel",e=>(t(e.channel,e.target),e))}function ei(e){if(!e.RTCPeerConnection||"connectionState"in e.RTCPeerConnection.prototype)return;let t=e.RTCPeerConnection.prototype;Object.defineProperty(t,"connectionState",{get(){return({completed:"connected",checking:"connecting"})[this.iceConnectionState]||this.iceConnectionState},enumerable:!0,configurable:!0}),Object.defineProperty(t,"onconnectionstatechange",{get(){return this._onconnectionstatechange||null},set(e){this._onconnectionstatechange&&(this.removeEventListener("connectionstatechange",this._onconnectionstatechange),delete this._onconnectionstatechange),e&&this.addEventListener("connectionstatechange",this._onconnectionstatechange=e)},enumerable:!0,configurable:!0}),["setLocalDescription","setRemoteDescription"].forEach(e=>{let n=t[e];t[e]=function(){return this._connectionstatechangepoly||(this._connectionstatechangepoly=e=>{let t=e.target;if(t._lastConnectionState!==t.connectionState){t._lastConnectionState=t.connectionState;let n=new Event("connectionstatechange",e);t.dispatchEvent(n)}return e},this.addEventListener("iceconnectionstatechange",this._connectionstatechangepoly)),n.apply(this,arguments)}})}function es(e,t){if(!e.RTCPeerConnection||"chrome"===t.browser&&t.version>=71||"safari"===t.browser&&t.version>=605)return;let n=e.RTCPeerConnection.prototype.setRemoteDescription;e.RTCPeerConnection.prototype.setRemoteDescription=function(t){if(t&&t.sdp&&-1!==t.sdp.indexOf("\na=extmap-allow-mixed")){let n=t.sdp.split("\n").filter(e=>"a=extmap-allow-mixed"!==e.trim()).join("\n");e.RTCSessionDescription&&t instanceof e.RTCSessionDescription?arguments[0]=new e.RTCSessionDescription({type:t.type,sdp:n}):t.sdp=n}return n.apply(this,arguments)}}function eo(e,t){if(!(e.RTCPeerConnection&&e.RTCPeerConnection.prototype))return;let n=e.RTCPeerConnection.prototype.addIceCandidate;n&&0!==n.length&&(e.RTCPeerConnection.prototype.addIceCandidate=function(){return arguments[0]?("chrome"===t.browser&&t.version<78||"firefox"===t.browser&&t.version<68||"safari"===t.browser)&&arguments[0]&&""===arguments[0].candidate?Promise.resolve():n.apply(this,arguments):(arguments[1]&&arguments[1].apply(null),Promise.resolve())})}function ea(e,t){if(!(e.RTCPeerConnection&&e.RTCPeerConnection.prototype))return;let n=e.RTCPeerConnection.prototype.setLocalDescription;n&&0!==n.length&&(e.RTCPeerConnection.prototype.setLocalDescription=function(){let e=arguments[0]||{};if("object"!=typeof e||e.type&&e.sdp)return n.apply(this,arguments);if(!(e={type:e.type,sdp:e.sdp}).type)switch(this.signalingState){case"stable":case"have-local-offer":case"have-remote-pranswer":e.type="offer";break;default:e.type="answer"}return e.sdp||"offer"!==e.type&&"answer"!==e.type?n.apply(this,[e]):("offer"===e.type?this.createOffer:this.createAnswer).apply(this).then(e=>n.apply(this,[e]))})}"use strict";Z.generateIdentifier=function(){return Math.random().toString(36).substring(2,12)},Z.localCName=Z.generateIdentifier(),Z.splitLines=function(e){return e.trim().split("\n").map(e=>e.trim())},Z.splitSections=function(e){return e.split("\nm=").map((e,t)=>(t>0?"m="+e:e).trim()+"\r\n")},Z.getDescription=function(e){let t=Z.splitSections(e);return t&&t[0]},Z.getMediaSections=function(e){let t=Z.splitSections(e);return t.shift(),t},Z.matchPrefix=function(e,t){return Z.splitLines(e).filter(e=>0===e.indexOf(t))},Z.parseCandidate=function(e){let t,n={foundation:(t=0===e.indexOf("a=candidate:")?e.substring(12).split(" "):e.substring(10).split(" "))[0],component:{1:"rtp",2:"rtcp"}[t[1]]||t[1],protocol:t[2].toLowerCase(),priority:parseInt(t[3],10),ip:t[4],address:t[4],port:parseInt(t[5],10),type:t[7]};for(let e=8;e<t.length;e+=2)switch(t[e]){case"raddr":n.relatedAddress=t[e+1];break;case"rport":n.relatedPort=parseInt(t[e+1],10);break;case"tcptype":n.tcpType=t[e+1];break;case"ufrag":n.ufrag=t[e+1],n.usernameFragment=t[e+1];break;default:void 0===n[t[e]]&&(n[t[e]]=t[e+1])}return n},Z.writeCandidate=function(e){let t=[];t.push(e.foundation);let n=e.component;"rtp"===n?t.push(1):"rtcp"===n?t.push(2):t.push(n),t.push(e.protocol.toUpperCase()),t.push(e.priority),t.push(e.address||e.ip),t.push(e.port);let r=e.type;return t.push("typ"),t.push(r),"host"!==r&&e.relatedAddress&&e.relatedPort&&(t.push("raddr"),t.push(e.relatedAddress),t.push("rport"),t.push(e.relatedPort)),e.tcpType&&"tcp"===e.protocol.toLowerCase()&&(t.push("tcptype"),t.push(e.tcpType)),(e.usernameFragment||e.ufrag)&&(t.push("ufrag"),t.push(e.usernameFragment||e.ufrag)),"candidate:"+t.join(" ")},Z.parseIceOptions=function(e){return e.substring(14).split(" ")},Z.parseRtpMap=function(e){let t=e.substring(9).split(" "),n={payloadType:parseInt(t.shift(),10)};return n.name=(t=t[0].split("/"))[0],n.clockRate=parseInt(t[1],10),n.channels=3===t.length?parseInt(t[2],10):1,n.numChannels=n.channels,n},Z.writeRtpMap=function(e){let t=e.payloadType;void 0!==e.preferredPayloadType&&(t=e.preferredPayloadType);let n=e.channels||e.numChannels||1;return"a=rtpmap:"+t+" "+e.name+"/"+e.clockRate+(1!==n?"/"+n:"")+"\r\n"},Z.parseExtmap=function(e){let t=e.substring(9).split(" ");return{id:parseInt(t[0],10),direction:t[0].indexOf("/")>0?t[0].split("/")[1]:"sendrecv",uri:t[1],attributes:t.slice(2).join(" ")}},Z.writeExtmap=function(e){return"a=extmap:"+(e.id||e.preferredId)+(e.direction&&"sendrecv"!==e.direction?"/"+e.direction:"")+" "+e.uri+(e.attributes?" "+e.attributes:"")+"\r\n"},Z.parseFmtp=function(e){let t,n={},r=e.substring(e.indexOf(" ")+1).split(";");for(let e=0;e<r.length;e++)n[(t=r[e].trim().split("="))[0].trim()]=t[1];return n},Z.writeFmtp=function(e){let t="",n=e.payloadType;if(void 0!==e.preferredPayloadType&&(n=e.preferredPayloadType),e.parameters&&Object.keys(e.parameters).length){let r=[];Object.keys(e.parameters).forEach(t=>{void 0!==e.parameters[t]?r.push(t+"="+e.parameters[t]):r.push(t)}),t+="a=fmtp:"+n+" "+r.join(";")+"\r\n"}return t},Z.parseRtcpFb=function(e){let t=e.substring(e.indexOf(" ")+1).split(" ");return{type:t.shift(),parameter:t.join(" ")}},Z.writeRtcpFb=function(e){let t="",n=e.payloadType;return void 0!==e.preferredPayloadType&&(n=e.preferredPayloadType),e.rtcpFeedback&&e.rtcpFeedback.length&&e.rtcpFeedback.forEach(e=>{t+="a=rtcp-fb:"+n+" "+e.type+(e.parameter&&e.parameter.length?" "+e.parameter:"")+"\r\n"}),t},Z.parseSsrcMedia=function(e){let t=e.indexOf(" "),n={ssrc:parseInt(e.substring(7,t),10)},r=e.indexOf(":",t);return r>-1?(n.attribute=e.substring(t+1,r),n.value=e.substring(r+1)):n.attribute=e.substring(t+1),n},Z.parseSsrcGroup=function(e){let t=e.substring(13).split(" ");return{semantics:t.shift(),ssrcs:t.map(e=>parseInt(e,10))}},Z.getMid=function(e){let t=Z.matchPrefix(e,"a=mid:")[0];if(t)return t.substring(6)},Z.parseFingerprint=function(e){let t=e.substring(14).split(" ");return{algorithm:t[0].toLowerCase(),value:t[1].toUpperCase()}},Z.getDtlsParameters=function(e,t){return{role:"auto",fingerprints:Z.matchPrefix(e+t,"a=fingerprint:").map(Z.parseFingerprint)}},Z.writeDtlsParameters=function(e,t){let n="a=setup:"+t+"\r\n";return e.fingerprints.forEach(e=>{n+="a=fingerprint:"+e.algorithm+" "+e.value+"\r\n"}),n},Z.parseCryptoLine=function(e){let t=e.substring(9).split(" ");return{tag:parseInt(t[0],10),cryptoSuite:t[1],keyParams:t[2],sessionParams:t.slice(3)}},Z.writeCryptoLine=function(e){return"a=crypto:"+e.tag+" "+e.cryptoSuite+" "+("object"==typeof e.keyParams?Z.writeCryptoKeyParams(e.keyParams):e.keyParams)+(e.sessionParams?" "+e.sessionParams.join(" "):"")+"\r\n"},Z.parseCryptoKeyParams=function(e){if(0!==e.indexOf("inline:"))return null;let t=e.substring(7).split("|");return{keyMethod:"inline",keySalt:t[0],lifeTime:t[1],mkiValue:t[2]?t[2].split(":")[0]:void 0,mkiLength:t[2]?t[2].split(":")[1]:void 0}},Z.writeCryptoKeyParams=function(e){return e.keyMethod+":"+e.keySalt+(e.lifeTime?"|"+e.lifeTime:"")+(e.mkiValue&&e.mkiLength?"|"+e.mkiValue+":"+e.mkiLength:"")},Z.getCryptoParameters=function(e,t){return Z.matchPrefix(e+t,"a=crypto:").map(Z.parseCryptoLine)},Z.getIceParameters=function(e,t){let n=Z.matchPrefix(e+t,"a=ice-ufrag:")[0],r=Z.matchPrefix(e+t,"a=ice-pwd:")[0];return n&&r?{usernameFragment:n.substring(12),password:r.substring(10)}:null},Z.writeIceParameters=function(e){let t="a=ice-ufrag:"+e.usernameFragment+"\r\na=ice-pwd:"+e.password+"\r\n";return e.iceLite&&(t+="a=ice-lite\r\n"),t},Z.parseRtpParameters=function(e){let t={codecs:[],headerExtensions:[],fecMechanisms:[],rtcp:[]},n=Z.splitLines(e)[0].split(" ");t.profile=n[2];for(let r=3;r<n.length;r++){let i=n[r],s=Z.matchPrefix(e,"a=rtpmap:"+i+" ")[0];if(s){let n=Z.parseRtpMap(s),r=Z.matchPrefix(e,"a=fmtp:"+i+" ");switch(n.parameters=r.length?Z.parseFmtp(r[0]):{},n.rtcpFeedback=Z.matchPrefix(e,"a=rtcp-fb:"+i+" ").map(Z.parseRtcpFb),t.codecs.push(n),n.name.toUpperCase()){case"RED":case"ULPFEC":t.fecMechanisms.push(n.name.toUpperCase())}}}Z.matchPrefix(e,"a=extmap:").forEach(e=>{t.headerExtensions.push(Z.parseExtmap(e))});let r=Z.matchPrefix(e,"a=rtcp-fb:* ").map(Z.parseRtcpFb);return t.codecs.forEach(e=>{r.forEach(t=>{e.rtcpFeedback.find(e=>e.type===t.type&&e.parameter===t.parameter)||e.rtcpFeedback.push(t)})}),t},Z.writeRtpDescription=function(e,t){let n="";n+="m="+e+" ",n+=t.codecs.length>0?"9":"0",n+=" "+(t.profile||"UDP/TLS/RTP/SAVPF")+" ",n+=t.codecs.map(e=>void 0!==e.preferredPayloadType?e.preferredPayloadType:e.payloadType).join(" ")+"\r\n",n+="c=IN IP4 0.0.0.0\r\n",n+="a=rtcp:9 IN IP4 0.0.0.0\r\n",t.codecs.forEach(e=>{n+=Z.writeRtpMap(e),n+=Z.writeFmtp(e),n+=Z.writeRtcpFb(e)});let r=0;return t.codecs.forEach(e=>{e.maxptime>r&&(r=e.maxptime)}),r>0&&(n+="a=maxptime:"+r+"\r\n"),t.headerExtensions&&t.headerExtensions.forEach(e=>{n+=Z.writeExtmap(e)}),n},Z.parseRtpEncodingParameters=function(e){let t,n=[],r=Z.parseRtpParameters(e),i=-1!==r.fecMechanisms.indexOf("RED"),s=-1!==r.fecMechanisms.indexOf("ULPFEC"),o=Z.matchPrefix(e,"a=ssrc:").map(e=>Z.parseSsrcMedia(e)).filter(e=>"cname"===e.attribute),a=o.length>0&&o[0].ssrc,c=Z.matchPrefix(e,"a=ssrc-group:FID").map(e=>e.substring(17).split(" ").map(e=>parseInt(e,10)));c.length>0&&c[0].length>1&&c[0][0]===a&&(t=c[0][1]),r.codecs.forEach(e=>{if("RTX"===e.name.toUpperCase()&&e.parameters.apt){let r={ssrc:a,codecPayloadType:parseInt(e.parameters.apt,10)};a&&t&&(r.rtx={ssrc:t}),n.push(r),i&&((r=JSON.parse(JSON.stringify(r))).fec={ssrc:a,mechanism:s?"red+ulpfec":"red"},n.push(r))}}),0===n.length&&a&&n.push({ssrc:a});let p=Z.matchPrefix(e,"b=");return p.length&&(p=0===p[0].indexOf("b=TIAS:")?parseInt(p[0].substring(7),10):0===p[0].indexOf("b=AS:")?950*parseInt(p[0].substring(5),10)-16e3:void 0,n.forEach(e=>{e.maxBitrate=p})),n},Z.parseRtcpParameters=function(e){let t={},n=Z.matchPrefix(e,"a=ssrc:").map(e=>Z.parseSsrcMedia(e)).filter(e=>"cname"===e.attribute)[0];n&&(t.cname=n.value,t.ssrc=n.ssrc);let r=Z.matchPrefix(e,"a=rtcp-rsize");return t.reducedSize=r.length>0,t.compound=0===r.length,t.mux=Z.matchPrefix(e,"a=rtcp-mux").length>0,t},Z.writeRtcpParameters=function(e){let t="";return e.reducedSize&&(t+="a=rtcp-rsize\r\n"),e.mux&&(t+="a=rtcp-mux\r\n"),void 0!==e.ssrc&&e.cname&&(t+="a=ssrc:"+e.ssrc+" cname:"+e.cname+"\r\n"),t},Z.parseMsid=function(e){let t,n=Z.matchPrefix(e,"a=msid:");if(1===n.length)return{stream:(t=n[0].substring(7).split(" "))[0],track:t[1]};let r=Z.matchPrefix(e,"a=ssrc:").map(e=>Z.parseSsrcMedia(e)).filter(e=>"msid"===e.attribute);if(r.length>0)return{stream:(t=r[0].value.split(" "))[0],track:t[1]}},Z.parseSctpDescription=function(e){let t,n=Z.parseMLine(e),r=Z.matchPrefix(e,"a=max-message-size:");r.length>0&&(t=parseInt(r[0].substring(19),10)),isNaN(t)&&(t=65536);let i=Z.matchPrefix(e,"a=sctp-port:");if(i.length>0)return{port:parseInt(i[0].substring(12),10),protocol:n.fmt,maxMessageSize:t};let s=Z.matchPrefix(e,"a=sctpmap:");if(s.length>0){let e=s[0].substring(10).split(" ");return{port:parseInt(e[0],10),protocol:e[1],maxMessageSize:t}}},Z.writeSctpDescription=function(e,t){let n=[];return n="DTLS/SCTP"!==e.protocol?["m="+e.kind+" 9 "+e.protocol+" "+t.protocol+"\r\n","c=IN IP4 0.0.0.0\r\n","a=sctp-port:"+t.port+"\r\n"]:["m="+e.kind+" 9 "+e.protocol+" "+t.port+"\r\n","c=IN IP4 0.0.0.0\r\n","a=sctpmap:"+t.port+" "+t.protocol+" 65535\r\n"],void 0!==t.maxMessageSize&&n.push("a=max-message-size:"+t.maxMessageSize+"\r\n"),n.join("")},Z.generateSessionId=function(){return Math.random().toString().substr(2,22)},Z.writeSessionBoilerplate=function(e,t,n){return"v=0\r\no="+(n||"thisisadapterortc")+" "+(e||Z.generateSessionId())+" "+(void 0!==t?t:2)+" IN IP4 127.0.0.1\r\ns=-\r\nt=0 0\r\n"},Z.getDirection=function(e,t){let n=Z.splitLines(e);for(let e=0;e<n.length;e++)switch(n[e]){case"a=sendrecv":case"a=sendonly":case"a=recvonly":case"a=inactive":return n[e].substring(2)}return t?Z.getDirection(t):"sendrecv"},Z.getKind=function(e){return Z.splitLines(e)[0].split(" ")[0].substring(2)},Z.isRejected=function(e){return"0"===e.split(" ",2)[1]},Z.parseMLine=function(e){let t=Z.splitLines(e)[0].substring(2).split(" ");return{kind:t[0],port:parseInt(t[1],10),protocol:t[2],fmt:t.slice(3).join(" ")}},Z.parseOLine=function(e){let t=Z.matchPrefix(e,"o=")[0].substring(2).split(" ");return{username:t[0],sessionId:t[1],sessionVersion:parseInt(t[2],10),netType:t[3],addressType:t[4],address:t[5]}},Z.isValidSDP=function(e){if("string"!=typeof e||0===e.length)return!1;let t=Z.splitLines(e);for(let e=0;e<t.length;e++)if(t[e].length<2||"="!==t[e].charAt(1))return!1;return!0},q=Z;let ec=function({window:e}={},t={shimChrome:!0,shimFirefox:!0,shimSafari:!0}){let n=function(e){let t={browser:null,version:null};if(void 0===e||!e.navigator||!e.navigator.userAgent)return t.browser="Not a browser.",t;let{navigator:n}=e;if(n.userAgentData&&n.userAgentData.brands){let e=n.userAgentData.brands.find(e=>"Chromium"===e.brand);if(e)return{browser:"chrome",version:parseInt(e.version,10)}}return n.mozGetUserMedia?(t.browser="firefox",t.version=d(n.userAgent,/Firefox\/(\d+)\./,1)):n.webkitGetUserMedia||!1===e.isSecureContext&&e.webkitRTCPeerConnection?(t.browser="chrome",t.version=d(n.userAgent,/Chrom(e|ium)\/(\d+)\./,2)):e.RTCPeerConnection&&n.userAgent.match(/AppleWebKit\/(\d+)\./)?(t.browser="safari",t.version=d(n.userAgent,/AppleWebKit\/(\d+)\./,1),t.supportsUnifiedPlan=e.RTCRtpTransceiver&&"currentDirection"in e.RTCRtpTransceiver.prototype):t.browser="Not a supported browser.",t}(e),r={browserDetails:n,commonShim:Q,extractVersion:d,disableLog:h,disableWarnings:u,sdp:q};switch(n.browser){case"chrome":if(!y||!y.shimPeerConnection||!t.shimChrome){f("Chrome shim is not included in this adapter release.");break}if(null===n.version){f("Chrome shim can not determine version, not shimming.");break}f("adapter.js shimming chrome."),r.browserShim=y,eo(e,n),ea(e,n),y.shimGetUserMedia(e,n),y.shimMediaStream(e,n),y.shimPeerConnection(e,n),y.shimOnTrack(e,n),y.shimAddTrackRemoveTrack(e,n),y.shimGetSendersWithDtmf(e,n),y.shimSenderReceiverGetStats(e,n),y.fixNegotiationNeeded(e,n),ee(e,n),et(e,n),ei(e,n),en(e,n),er(e,n),es(e,n);break;case"firefox":if(!E||!E.shimPeerConnection||!t.shimFirefox){f("Firefox shim is not included in this adapter release.");break}f("adapter.js shimming firefox."),r.browserShim=E,eo(e,n),ea(e,n),E.shimGetUserMedia(e,n),E.shimPeerConnection(e,n),E.shimOnTrack(e,n),E.shimRemoveStream(e,n),E.shimSenderGetStats(e,n),E.shimReceiverGetStats(e,n),E.shimRTCDataChannel(e,n),E.shimAddTransceiver(e,n),E.shimGetParameters(e,n),E.shimCreateOffer(e,n),E.shimCreateAnswer(e,n),ee(e,n),ei(e,n),en(e,n),er(e,n);break;case"safari":if(!z||!t.shimSafari){f("Safari shim is not included in this adapter release.");break}f("adapter.js shimming safari."),r.browserShim=z,eo(e,n),ea(e,n),z.shimRTCIceServerUrls(e,n),z.shimCreateOfferLegacy(e,n),z.shimCallbacksAPI(e,n),z.shimLocalStreamsAPI(e,n),z.shimRemoteStreamsAPI(e,n),z.shimTrackEventTransceiver(e,n),z.shimGetUserMedia(e,n),z.shimAudioContext(e,n),ee(e,n),et(e,n),en(e,n),er(e,n),es(e,n);break;default:f("Unsupported browser!")}return r}({window:"undefined"==typeof window?void 0:window}),ep=ec.default||ec,ed=new class{isWebRTCSupported(){return"undefined"!=typeof RTCPeerConnection}isBrowserSupported(){let e=this.getBrowser(),t=this.getVersion();return!!this.supportedBrowsers.includes(e)&&("chrome"===e?t>=this.minChromeVersion:"firefox"===e?t>=this.minFirefoxVersion:"safari"===e&&!this.isIOS&&t>=this.minSafariVersion)}getBrowser(){return ep.browserDetails.browser}getVersion(){return ep.browserDetails.version||0}isUnifiedPlanSupported(){let e,t=this.getBrowser(),n=ep.browserDetails.version||0;if("chrome"===t&&n<this.minChromeVersion)return!1;if("firefox"===t&&n>=this.minFirefoxVersion)return!0;if(!window.RTCRtpTransceiver||!("currentDirection"in RTCRtpTransceiver.prototype))return!1;let r=!1;try{(e=new RTCPeerConnection).addTransceiver("audio"),r=!0}catch(e){}finally{e&&e.close()}return r}toString(){return`Supports:
-    browser:${this.getBrowser()}
-    version:${this.getVersion()}
-    isIOS:${this.isIOS}
-    isWebRTCSupported:${this.isWebRTCSupported()}
-    isBrowserSupported:${this.isBrowserSupported()}
-    isUnifiedPlanSupported:${this.isUnifiedPlanSupported()}`}constructor(){this.isIOS="undefined"!=typeof navigator&&["iPad","iPhone","iPod"].includes(navigator.platform),this.supportedBrowsers=["firefox","chrome","safari"],this.minFirefoxVersion=59,this.minChromeVersion=72,this.minSafariVersion=605}},el=e=>!e||/^[A-Za-z0-9]+(?:[ _-][A-Za-z0-9]+)*$/.test(e),eh=()=>Math.random().toString(36).slice(2),eu={iceServers:[{urls:"stun:stun.l.google.com:19302"},{urls:["turn:eu-0.turn.peerjs.com:3478","turn:us-0.turn.peerjs.com:3478"],username:"peerjs",credential:"peerjsp"}],sdpSemantics:"unified-plan"},ef=new class extends n{noop(){}blobToArrayBuffer(e,t){let n=new FileReader;return n.onload=function(e){e.target&&t(e.target.result)},n.readAsArrayBuffer(e),n}binaryStringToArrayBuffer(e){let t=new Uint8Array(e.length);for(let n=0;n<e.length;n++)t[n]=255&e.charCodeAt(n);return t.buffer}isSecure(){return"https:"===location.protocol}constructor(...e){super(...e),this.CLOUD_HOST="0.peerjs.com",this.CLOUD_PORT=443,this.chunkedBrowsers={Chrome:1,chrome:1},this.defaultConfig=eu,this.browser=ed.getBrowser(),this.browserVersion=ed.getVersion(),this.pack=s,this.unpack=i,this.supports=function(){let e,t={browser:ed.isBrowserSupported(),webRTC:ed.isWebRTCSupported(),audioVideo:!1,data:!1,binaryBlob:!1,reliable:!1};if(!t.webRTC)return t;try{let n;e=new RTCPeerConnection(eu),t.audioVideo=!0;try{n=e.createDataChannel("_PEERJSTEST",{ordered:!0}),t.data=!0,t.reliable=!!n.ordered;try{n.binaryType="blob",t.binaryBlob=!ed.isIOS}catch(e){}}catch(e){}finally{n&&n.close()}}catch(e){}finally{e&&e.close()}return t}(),this.validateId=el,this.randomToken=eh}};"use strict";var em=new class{get logLevel(){return this._logLevel}set logLevel(e){this._logLevel=e}log(...e){this._logLevel>=3&&this._print(3,...e)}warn(...e){this._logLevel>=2&&this._print(2,...e)}error(...e){this._logLevel>=1&&this._print(1,...e)}setLogFunction(e){this._print=e}_print(e,...t){let n=["PeerJS: ",...t];for(let e in n)n[e]instanceof Error&&(n[e]="("+n[e].name+") "+n[e].message);e>=3?console.log(...n):e>=2?console.warn("WARNING",...n):e>=1&&console.error("ERROR",...n)}constructor(){this._logLevel=0}},e_={},eg=Object.prototype.hasOwnProperty,ey="~";function eC(){}function ev(e,t,n){this.fn=e,this.context=t,this.once=n||!1}function eb(e,t,n,r,i){if("function"!=typeof n)throw TypeError("The listener must be a function");var s=new ev(n,r||e,i),o=ey?ey+t:t;return e._events[o]?e._events[o].fn?e._events[o]=[e._events[o],s]:e._events[o].push(s):(e._events[o]=s,e._eventsCount++),e}function eT(e,t){0==--e._eventsCount?e._events=new eC:delete e._events[t]}function eS(){this._events=new eC,this._eventsCount=0}Object.create&&(eC.prototype=Object.create(null),new eC().__proto__||(ey=!1)),eS.prototype.eventNames=function(){var e,t,n=[];if(0===this._eventsCount)return n;for(t in e=this._events)eg.call(e,t)&&n.push(ey?t.slice(1):t);return Object.getOwnPropertySymbols?n.concat(Object.getOwnPropertySymbols(e)):n},eS.prototype.listeners=function(e){var t=ey?ey+e:e,n=this._events[t];if(!n)return[];if(n.fn)return[n.fn];for(var r=0,i=n.length,s=Array(i);r<i;r++)s[r]=n[r].fn;return s},eS.prototype.listenerCount=function(e){var t=ey?ey+e:e,n=this._events[t];return n?n.fn?1:n.length:0},eS.prototype.emit=function(e,t,n,r,i,s){var o=ey?ey+e:e;if(!this._events[o])return!1;var a,c,p=this._events[o],d=arguments.length;if(p.fn){switch(p.once&&this.removeListener(e,p.fn,void 0,!0),d){case 1:return p.fn.call(p.context),!0;case 2:return p.fn.call(p.context,t),!0;case 3:return p.fn.call(p.context,t,n),!0;case 4:return p.fn.call(p.context,t,n,r),!0;case 5:return p.fn.call(p.context,t,n,r,i),!0;case 6:return p.fn.call(p.context,t,n,r,i,s),!0}for(c=1,a=Array(d-1);c<d;c++)a[c-1]=arguments[c];p.fn.apply(p.context,a)}else{var l,h=p.length;for(c=0;c<h;c++)switch(p[c].once&&this.removeListener(e,p[c].fn,void 0,!0),d){case 1:p[c].fn.call(p[c].context);break;case 2:p[c].fn.call(p[c].context,t);break;case 3:p[c].fn.call(p[c].context,t,n);break;case 4:p[c].fn.call(p[c].context,t,n,r);break;default:if(!a)for(l=1,a=Array(d-1);l<d;l++)a[l-1]=arguments[l];p[c].fn.apply(p[c].context,a)}}return!0},eS.prototype.on=function(e,t,n){return eb(this,e,t,n,!1)},eS.prototype.once=function(e,t,n){return eb(this,e,t,n,!0)},eS.prototype.removeListener=function(e,t,n,r){var i=ey?ey+e:e;if(!this._events[i])return this;if(!t)return eT(this,i),this;var s=this._events[i];if(s.fn)s.fn!==t||r&&!s.once||n&&s.context!==n||eT(this,i);else{for(var o=0,a=[],c=s.length;o<c;o++)(s[o].fn!==t||r&&!s[o].once||n&&s[o].context!==n)&&a.push(s[o]);a.length?this._events[i]=1===a.length?a[0]:a:eT(this,i)}return this},eS.prototype.removeAllListeners=function(e){var t;return e?(t=ey?ey+e:e,this._events[t]&&eT(this,t)):(this._events=new eC,this._eventsCount=0),this},eS.prototype.off=eS.prototype.removeListener,eS.prototype.addListener=eS.prototype.on,eS.prefixed=ey,eS.EventEmitter=eS,e_=eS;var ek=function(e){return e.Data="data",e.Media="media",e}({}),eR=function(e){return e.BrowserIncompatible="browser-incompatible",e.Disconnected="disconnected",e.InvalidID="invalid-id",e.InvalidKey="invalid-key",e.Network="network",e.PeerUnavailable="peer-unavailable",e.SslUnavailable="ssl-unavailable",e.ServerError="server-error",e.SocketError="socket-error",e.SocketClosed="socket-closed",e.UnavailableID="unavailable-id",e.WebRTC="webrtc",e}({}),eP=function(e){return e.NegotiationFailed="negotiation-failed",e.ConnectionClosed="connection-closed",e}({}),ew=function(e){return e.NotOpenYet="not-open-yet",e.MessageToBig="message-too-big",e}({}),eE=function(e){return e.Binary="binary",e.BinaryUTF8="binary-utf8",e.JSON="json",e.None="raw",e}({}),ex=function(e){return e.Message="message",e.Disconnected="disconnected",e.Error="error",e.Close="close",e}({}),eD=function(e){return e.Heartbeat="HEARTBEAT",e.Candidate="CANDIDATE",e.Offer="OFFER",e.Answer="ANSWER",e.Open="OPEN",e.Error="ERROR",e.IdTaken="ID-TAKEN",e.InvalidKey="INVALID-KEY",e.Leave="LEAVE",e.Expire="EXPIRE",e}({});let eI="1.5.5";class eM extends e_.EventEmitter{start(e,t){this._id=e;let n=`${this._baseUrl}&id=${e}&token=${t}`;!this._socket&&this._disconnected&&(this._socket=new WebSocket(n+"&version="+eI),this._disconnected=!1,this._socket.onmessage=e=>{let t;try{t=JSON.parse(e.data),em.log("Server message received:",t)}catch(t){em.log("Invalid server message",e.data);return}this.emit(ex.Message,t)},this._socket.onclose=e=>{this._disconnected||(em.log("Socket closed.",e),this._cleanup(),this._disconnected=!0,this.emit(ex.Disconnected))},this._socket.onopen=()=>{this._disconnected||(this._sendQueuedMessages(),em.log("Socket open"),this._scheduleHeartbeat())})}_scheduleHeartbeat(){this._wsPingTimer=setTimeout(()=>{this._sendHeartbeat()},this.pingInterval)}_sendHeartbeat(){if(!this._wsOpen())return void em.log("Cannot send heartbeat, because socket closed");let e=JSON.stringify({type:eD.Heartbeat});this._socket.send(e),this._scheduleHeartbeat()}_wsOpen(){return!!this._socket&&1===this._socket.readyState}_sendQueuedMessages(){let e=[...this._messagesQueue];for(let t of(this._messagesQueue=[],e))this.send(t)}send(e){if(this._disconnected)return;if(!this._id)return void this._messagesQueue.push(e);if(!e.type)return void this.emit(ex.Error,"Invalid message");if(!this._wsOpen())return;let t=JSON.stringify(e);this._socket.send(t)}close(){this._disconnected||(this._cleanup(),this._disconnected=!0)}_cleanup(){this._socket&&(this._socket.onopen=this._socket.onmessage=this._socket.onclose=null,this._socket.close(),this._socket=void 0),clearTimeout(this._wsPingTimer)}constructor(e,t,n,r,i,s=5e3){super(),this.pingInterval=s,this._disconnected=!0,this._messagesQueue=[],this._baseUrl=(e?"wss://":"ws://")+t+":"+n+r+"peerjs?key="+i}}class eO{startConnection(e){let t=this._startPeerConnection();if(this.connection.peerConnection=t,this.connection.type===ek.Media&&e._stream&&this._addTracksToConnection(e._stream,t),e.originator){let n=this.connection,r={ordered:!!e.reliable},i=t.createDataChannel(n.label,r);n._initializeDataChannel(i),this._makeOffer()}else this.handleSDP("OFFER",e.sdp)}_startPeerConnection(){em.log("Creating RTCPeerConnection.");let e=new RTCPeerConnection(this.connection.provider.options.config);return this._setupListeners(e),e}_setupListeners(e){let t=this.connection.peer,n=this.connection.connectionId,r=this.connection.type,i=this.connection.provider;em.log("Listening for ICE candidates."),e.onicecandidate=e=>{e.candidate&&e.candidate.candidate&&(em.log(`Received ICE candidates for ${t}:`,e.candidate),i.socket.send({type:eD.Candidate,payload:{candidate:e.candidate,type:r,connectionId:n},dst:t}))},e.oniceconnectionstatechange=()=>{switch(e.iceConnectionState){case"failed":em.log("iceConnectionState is failed, closing connections to "+t),this.connection.emitError(eP.NegotiationFailed,"Negotiation of connection to "+t+" failed."),this.connection.close();break;case"closed":em.log("iceConnectionState is closed, closing connections to "+t),this.connection.emitError(eP.ConnectionClosed,"Connection to "+t+" closed."),this.connection.close();break;case"disconnected":em.log("iceConnectionState changed to disconnected on the connection with "+t);break;case"completed":e.onicecandidate=()=>{}}this.connection.emit("iceStateChanged",e.iceConnectionState)},em.log("Listening for data channel"),e.ondatachannel=e=>{em.log("Received data channel");let r=e.channel;i.getConnection(t,n)._initializeDataChannel(r)},em.log("Listening for remote stream"),e.ontrack=e=>{em.log("Received remote stream");let r=e.streams[0],s=i.getConnection(t,n);s.type===ek.Media&&this._addStreamToMediaConnection(r,s)}}cleanup(){em.log("Cleaning up PeerConnection to "+this.connection.peer);let e=this.connection.peerConnection;if(!e)return;this.connection.peerConnection=null,e.onicecandidate=e.oniceconnectionstatechange=e.ondatachannel=e.ontrack=()=>{};let t="closed"!==e.signalingState,n=!1,r=this.connection.dataChannel;r&&(n=!!r.readyState&&"closed"!==r.readyState),(t||n)&&e.close()}async _makeOffer(){let e=this.connection.peerConnection,t=this.connection.provider;try{let n=await e.createOffer(this.connection.options.constraints);em.log("Created offer."),this.connection.options.sdpTransform&&"function"==typeof this.connection.options.sdpTransform&&(n.sdp=this.connection.options.sdpTransform(n.sdp)||n.sdp);try{await e.setLocalDescription(n),em.log("Set localDescription:",n,`for:${this.connection.peer}`);let r={sdp:n,type:this.connection.type,connectionId:this.connection.connectionId,metadata:this.connection.metadata};if(this.connection.type===ek.Data){let e=this.connection;r={...r,label:e.label,reliable:e.reliable,serialization:e.serialization}}t.socket.send({type:eD.Offer,payload:r,dst:this.connection.peer})}catch(e){"OperationError: Failed to set local offer sdp: Called in wrong state: kHaveRemoteOffer"!=e&&(t.emitError(eR.WebRTC,e),em.log("Failed to setLocalDescription, ",e))}}catch(e){t.emitError(eR.WebRTC,e),em.log("Failed to createOffer, ",e)}}async _makeAnswer(){let e=this.connection.peerConnection,t=this.connection.provider;try{let n=await e.createAnswer();em.log("Created answer."),this.connection.options.sdpTransform&&"function"==typeof this.connection.options.sdpTransform&&(n.sdp=this.connection.options.sdpTransform(n.sdp)||n.sdp);try{await e.setLocalDescription(n),em.log("Set localDescription:",n,`for:${this.connection.peer}`),t.socket.send({type:eD.Answer,payload:{sdp:n,type:this.connection.type,connectionId:this.connection.connectionId},dst:this.connection.peer})}catch(e){t.emitError(eR.WebRTC,e),em.log("Failed to setLocalDescription, ",e)}}catch(e){t.emitError(eR.WebRTC,e),em.log("Failed to create answer, ",e)}}async handleSDP(e,t){t=new RTCSessionDescription(t);let n=this.connection.peerConnection,r=this.connection.provider;em.log("Setting remote description",t);try{await n.setRemoteDescription(t),em.log(`Set remoteDescription:${e} for:${this.connection.peer}`),"OFFER"===e&&await this._makeAnswer()}catch(e){r.emitError(eR.WebRTC,e),em.log("Failed to setRemoteDescription, ",e)}}async handleCandidate(e){em.log("handleCandidate:",e);try{await this.connection.peerConnection.addIceCandidate(e),em.log(`Added ICE candidate for:${this.connection.peer}`)}catch(e){this.connection.provider.emitError(eR.WebRTC,e),em.log("Failed to handleCandidate, ",e)}}_addTracksToConnection(e,t){if(em.log(`add tracks from stream ${e.id} to peer connection`),!t.addTrack)return em.error("Your browser does't support RTCPeerConnection#addTrack. Ignored.");e.getTracks().forEach(n=>{t.addTrack(n,e)})}_addStreamToMediaConnection(e,t){em.log(`add stream ${e.id} to media connection ${t.connectionId}`),t.addStream(e)}constructor(e){this.connection=e}}class eL extends e_.EventEmitter{emitError(e,t){em.error("Error:",t),this.emit("error",new eA(`${e}`,t))}}class eA extends Error{constructor(e,t){"string"==typeof t?super(t):(super(),Object.assign(this,t)),this.type=e}}class ej extends eL{get open(){return this._open}constructor(e,t,n){super(),this.peer=e,this.provider=t,this.options=n,this._open=!1,this.metadata=n.metadata}}class eB extends ej{get type(){return ek.Media}get localStream(){return this._localStream}get remoteStream(){return this._remoteStream}_initializeDataChannel(e){this.dataChannel=e,this.dataChannel.onopen=()=>{em.log(`DC#${this.connectionId} dc connection success`),this.emit("willCloseOnRemote")},this.dataChannel.onclose=()=>{em.log(`DC#${this.connectionId} dc closed for:`,this.peer),this.close()}}addStream(e){em.log("Receiving stream",e),this._remoteStream=e,super.emit("stream",e)}handleMessage(e){let t=e.type,n=e.payload;switch(e.type){case eD.Answer:this._negotiator.handleSDP(t,n.sdp),this._open=!0;break;case eD.Candidate:this._negotiator.handleCandidate(n.candidate);break;default:em.warn(`Unrecognized message type:${t} from peer:${this.peer}`)}}answer(e,t={}){if(this._localStream)return void em.warn("Local stream already exists on this MediaConnection. Are you answering a call twice?");for(let n of(this._localStream=e,t&&t.sdpTransform&&(this.options.sdpTransform=t.sdpTransform),this._negotiator.startConnection({...this.options._payload,_stream:e}),this.provider._getMessages(this.connectionId)))this.handleMessage(n);this._open=!0}close(){this._negotiator&&(this._negotiator.cleanup(),this._negotiator=null),this._localStream=null,this._remoteStream=null,this.provider&&(this.provider._removeConnection(this),this.provider=null),this.options&&this.options._stream&&(this.options._stream=null),this.open&&(this._open=!1,super.emit("close"))}constructor(e,t,n){super(e,t,n),this._localStream=this.options._stream,this.connectionId=this.options.connectionId||eB.ID_PREFIX+ef.randomToken(),this._negotiator=new eO(this),this._localStream&&this._negotiator.startConnection({_stream:this._localStream,originator:!0})}}eB.ID_PREFIX="mc_";class eU{_buildRequest(e){let t=this._options.secure?"https":"http",{host:n,port:r,path:i,key:s}=this._options,o=new URL(`${t}://${n}:${r}${i}${s}/${e}`);return o.searchParams.set("ts",`${Date.now()}${Math.random()}`),o.searchParams.set("version",eI),fetch(o.href,{referrerPolicy:this._options.referrerPolicy})}async retrieveId(){try{let e=await this._buildRequest("id");if(200!==e.status)throw Error(`Error. Status:${e.status}`);return e.text()}catch(t){em.error("Error retrieving ID",t);let e="";throw"/"===this._options.path&&this._options.host!==ef.CLOUD_HOST&&(e=" If you passed in a `path` to your self-hosted PeerServer, you'll also need to pass in that same path when creating a new Peer."),Error("Could not get an ID from the server."+e)}}async listAllPeers(){try{let e=await this._buildRequest("peers");if(200!==e.status){if(401===e.status){let e="";throw e=this._options.host===ef.CLOUD_HOST?"It looks like you're using the cloud server. You can email team@peerjs.com to enable peer listing for your API key.":"You need to enable `allow_discovery` on your self-hosted PeerServer to use this feature.",Error("It doesn't look like you have permission to list peers IDs. "+e)}throw Error(`Error. Status:${e.status}`)}return e.json()}catch(e){throw em.error("Error retrieving list peers",e),Error("Could not get list peers from the server."+e)}}constructor(e){this._options=e}}class eF extends ej{get type(){return ek.Data}_initializeDataChannel(e){this.dataChannel=e,this.dataChannel.onopen=()=>{em.log(`DC#${this.connectionId} dc connection success`),this._open=!0,this.emit("open")},this.dataChannel.onmessage=e=>{em.log(`DC#${this.connectionId} dc onmessage:`,e.data)},this.dataChannel.onclose=()=>{em.log(`DC#${this.connectionId} dc closed for:`,this.peer),this.close()}}close(e){if(e?.flush)return void this.send({__peerData:{type:"close"}});this._negotiator&&(this._negotiator.cleanup(),this._negotiator=null),this.provider&&(this.provider._removeConnection(this),this.provider=null),this.dataChannel&&(this.dataChannel.onopen=null,this.dataChannel.onmessage=null,this.dataChannel.onclose=null,this.dataChannel=null),this.open&&(this._open=!1,super.emit("close"))}send(e,t=!1){return this.open?this._send(e,t):void this.emitError(ew.NotOpenYet,"Connection is not open. You should listen for the `open` event before sending messages.")}async handleMessage(e){let t=e.payload;switch(e.type){case eD.Answer:await this._negotiator.handleSDP(e.type,t.sdp);break;case eD.Candidate:await this._negotiator.handleCandidate(t.candidate);break;default:em.warn("Unrecognized message type:",e.type,"from peer:",this.peer)}}constructor(e,t,n){super(e,t,n),this.connectionId=this.options.connectionId||eF.ID_PREFIX+eh(),this.label=this.options.label||this.connectionId,this.reliable=!!this.options.reliable,this._negotiator=new eO(this),this._negotiator.startConnection(this.options._payload||{originator:!0,reliable:this.reliable})}}eF.ID_PREFIX="dc_",eF.MAX_BUFFERED_AMOUNT=8388608;class eN extends eF{get bufferSize(){return this._bufferSize}_initializeDataChannel(e){super._initializeDataChannel(e),this.dataChannel.binaryType="arraybuffer",this.dataChannel.addEventListener("message",e=>this._handleDataMessage(e))}_bufferedSend(e){(this._buffering||!this._trySend(e))&&(this._buffer.push(e),this._bufferSize=this._buffer.length)}_trySend(e){if(!this.open)return!1;if(this.dataChannel.bufferedAmount>eF.MAX_BUFFERED_AMOUNT)return this._buffering=!0,setTimeout(()=>{this._buffering=!1,this._tryBuffer()},50),!1;try{this.dataChannel.send(e)}catch(e){return em.error(`DC#:${this.connectionId} Error when sending:`,e),this._buffering=!0,this.close(),!1}return!0}_tryBuffer(){if(!this.open||0===this._buffer.length)return;let e=this._buffer[0];this._trySend(e)&&(this._buffer.shift(),this._bufferSize=this._buffer.length,this._tryBuffer())}close(e){if(e?.flush)return void this.send({__peerData:{type:"close"}});this._buffer=[],this._bufferSize=0,super.close()}constructor(...e){super(...e),this._buffer=[],this._bufferSize=0,this._buffering=!1}}class ez extends eN{close(e){super.close(e),this._chunkedData={}}_handleDataMessage({data:e}){let t=i(e),n=t.__peerData;if(n)return"close"===n.type?void this.close():void this._handleChunk(t);this.emit("data",t)}_handleChunk(e){let t=e.__peerData,n=this._chunkedData[t]||{data:[],count:0,total:e.total};if(n.data[e.n]=new Uint8Array(e.data),n.count++,this._chunkedData[t]=n,n.total===n.count){delete this._chunkedData[t];let e=function(e){let t=0;for(let n of e)t+=n.byteLength;let n=new Uint8Array(t),r=0;for(let t of e)n.set(t,r),r+=t.byteLength;return n}(n.data);this._handleDataMessage({data:e})}}_send(e,t){let n=s(e);return n instanceof Promise?this._send_blob(n):!t&&n.byteLength>this.chunker.chunkedMTU?void this._sendChunks(n):void this._bufferedSend(n)}async _send_blob(e){let t=await e;if(t.byteLength>this.chunker.chunkedMTU)return void this._sendChunks(t);this._bufferedSend(t)}_sendChunks(e){let t=this.chunker.chunk(e);for(let e of(em.log(`DC#${this.connectionId} Try to send ${t.length} chunks...`),t))this.send(e,!0)}constructor(e,t,r){super(e,t,r),this.chunker=new n,this.serialization=eE.Binary,this._chunkedData={}}}class e$ extends eN{_handleDataMessage({data:e}){super.emit("data",e)}_send(e,t){this._bufferedSend(e)}constructor(...e){super(...e),this.serialization=eE.None}}class eV extends eN{_handleDataMessage({data:e}){let t=this.parse(this.decoder.decode(e)),n=t.__peerData;if(n&&"close"===n.type)return void this.close();this.emit("data",t)}_send(e,t){let n=this.encoder.encode(this.stringify(e));if(n.byteLength>=ef.chunkedMTU)return void this.emitError(ew.MessageToBig,"Message too big for JSON channel");this._bufferedSend(n)}constructor(...e){super(...e),this.serialization=eE.JSON,this.encoder=new TextEncoder,this.decoder=new TextDecoder,this.stringify=JSON.stringify,this.parse=JSON.parse}}class eG extends eL{get id(){return this._id}get options(){return this._options}get open(){return this._open}get socket(){return this._socket}get connections(){let e=Object.create(null);for(let[t,n]of this._connections)e[t]=n;return e}get destroyed(){return this._destroyed}get disconnected(){return this._disconnected}_createServerConnection(){let e=new eM(this._options.secure,this._options.host,this._options.port,this._options.path,this._options.key,this._options.pingInterval);return e.on(ex.Message,e=>{this._handleMessage(e)}),e.on(ex.Error,e=>{this._abort(eR.SocketError,e)}),e.on(ex.Disconnected,()=>{this.disconnected||(this.emitError(eR.Network,"Lost connection to server."),this.disconnect())}),e.on(ex.Close,()=>{this.disconnected||this._abort(eR.SocketClosed,"Underlying socket is already closed.")}),e}_initialize(e){this._id=e,this.socket.start(e,this._options.token)}_handleMessage(e){let t=e.type,n=e.payload,r=e.src;switch(t){case eD.Open:this._lastServerId=this.id,this._open=!0,this.emit("open",this.id);break;case eD.Error:this._abort(eR.ServerError,n.msg);break;case eD.IdTaken:this._abort(eR.UnavailableID,`ID "${this.id}" is taken`);break;case eD.InvalidKey:this._abort(eR.InvalidKey,`API KEY "${this._options.key}" is invalid`);break;case eD.Leave:em.log(`Received leave message from ${r}`),this._cleanupPeer(r),this._connections.delete(r);break;case eD.Expire:this.emitError(eR.PeerUnavailable,`Could not connect to peer ${r}`);break;case eD.Offer:{let e=n.connectionId,t=this.getConnection(r,e);if(t&&(t.close(),em.warn(`Offer received for existing Connection ID:${e}`)),n.type===ek.Media){let i=new eB(r,this,{connectionId:e,_payload:n,metadata:n.metadata});t=i,this._addConnection(r,t),this.emit("call",i)}else{if(n.type!==ek.Data)return void em.warn(`Received malformed connection type:${n.type}`);let i=new this._serializers[n.serialization](r,this,{connectionId:e,_payload:n,metadata:n.metadata,label:n.label,serialization:n.serialization,reliable:n.reliable});t=i,this._addConnection(r,t),this.emit("connection",i)}for(let n of this._getMessages(e))t.handleMessage(n);break}default:{if(!n)return void em.warn(`You received a malformed message from ${r} of type ${t}`);let i=n.connectionId,s=this.getConnection(r,i);s&&s.peerConnection?s.handleMessage(e):i?this._storeMessage(i,e):em.warn("You received an unrecognized message:",e)}}}_storeMessage(e,t){this._lostMessages.has(e)||this._lostMessages.set(e,[]),this._lostMessages.get(e).push(t)}_getMessages(e){let t=this._lostMessages.get(e);return t?(this._lostMessages.delete(e),t):[]}connect(e,t={}){if(t={serialization:"default",...t},this.disconnected){em.warn("You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect, or call reconnect on this peer if you believe its ID to still be available."),this.emitError(eR.Disconnected,"Cannot connect to new Peer after disconnecting from server.");return}let n=new this._serializers[t.serialization](e,this,t);return this._addConnection(e,n),n}call(e,t,n={}){if(this.disconnected){em.warn("You cannot connect to a new Peer because you called .disconnect() on this Peer and ended your connection with the server. You can create a new Peer to reconnect."),this.emitError(eR.Disconnected,"Cannot connect to new Peer after disconnecting from server.");return}if(!t)return void em.error("To call a peer, you must provide a stream from your browser's `getUserMedia`.");let r=new eB(e,this,{...n,_stream:t});return this._addConnection(e,r),r}_addConnection(e,t){em.log(`add connection ${t.type}:${t.connectionId} to peerId:${e}`),this._connections.has(e)||this._connections.set(e,[]),this._connections.get(e).push(t)}_removeConnection(e){let t=this._connections.get(e.peer);if(t){let n=t.indexOf(e);-1!==n&&t.splice(n,1)}this._lostMessages.delete(e.connectionId)}getConnection(e,t){let n=this._connections.get(e);if(!n)return null;for(let e of n)if(e.connectionId===t)return e;return null}_delayedAbort(e,t){setTimeout(()=>{this._abort(e,t)},0)}_abort(e,t){em.error("Aborting!"),this.emitError(e,t),this._lastServerId?this.disconnect():this.destroy()}destroy(){this.destroyed||(em.log(`Destroy peer with ID:${this.id}`),this.disconnect(),this._cleanup(),this._destroyed=!0,this.emit("close"))}_cleanup(){for(let e of this._connections.keys())this._cleanupPeer(e),this._connections.delete(e);this.socket.removeAllListeners()}_cleanupPeer(e){let t=this._connections.get(e);if(t)for(let e of t)e.close()}disconnect(){if(this.disconnected)return;let e=this.id;em.log(`Disconnect peer with ID:${e}`),this._disconnected=!0,this._open=!1,this.socket.close(),this._lastServerId=e,this._id=null,this.emit("disconnected",e)}reconnect(){if(this.disconnected&&!this.destroyed)em.log(`Attempting reconnection to server with ID ${this._lastServerId}`),this._disconnected=!1,this._initialize(this._lastServerId);else if(this.destroyed)throw Error("This peer cannot reconnect to the server. It has already been destroyed.");else if(this.disconnected||this.open)throw Error(`Peer ${this.id} cannot reconnect because it is not disconnected from the server!`);else em.error("In a hurry? We're still trying to make the initial connection!")}listAllPeers(e=e=>{}){this._api.listAllPeers().then(t=>e(t)).catch(e=>this._abort(eR.ServerError,e))}constructor(e,t){let n;if(super(),this._serializers={raw:e$,json:eV,binary:ez,"binary-utf8":ez,default:ez},this._id=null,this._lastServerId=null,this._destroyed=!1,this._disconnected=!1,this._open=!1,this._connections=new Map,this._lostMessages=new Map,e&&e.constructor==Object?t=e:e&&(n=e.toString()),t={debug:0,host:ef.CLOUD_HOST,port:ef.CLOUD_PORT,path:"/",key:eG.DEFAULT_KEY,token:ef.randomToken(),config:ef.defaultConfig,referrerPolicy:"strict-origin-when-cross-origin",serializers:{},...t},this._options=t,this._serializers={...this._serializers,...this.options.serializers},"/"===this._options.host&&(this._options.host=window.location.hostname),this._options.path&&("/"!==this._options.path[0]&&(this._options.path="/"+this._options.path),"/"!==this._options.path[this._options.path.length-1]&&(this._options.path+="/")),void 0===this._options.secure&&this._options.host!==ef.CLOUD_HOST?this._options.secure=ef.isSecure():this._options.host==ef.CLOUD_HOST&&(this._options.secure=!0),this._options.logFunction&&em.setLogFunction(this._options.logFunction),em.logLevel=this._options.debug||0,this._api=new eU(t),this._socket=this._createServerConnection(),!ef.supports.audioVideo&&!ef.supports.data)return void this._delayedAbort(eR.BrowserIncompatible,"The current browser does not support WebRTC");if(n&&!ef.validateId(n))return void this._delayedAbort(eR.InvalidID,`ID "${n}" is invalid`);n?this._initialize(n):this._api.retrieveId().then(e=>this._initialize(e)).catch(e=>this._abort(eR.ServerError,e))}}eG.DEFAULT_KEY="peerjs",window.peerjs={Peer:eG,util:ef},window.Peer=eG})();
-//# sourceMappingURL=peerjs.min.js.map
-
-</script>
-  <script>
+  <script type="module">
     "use strict";
 
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-app.js";
+    import {
+      getAuth,
+      signInAnonymously,
+      setPersistence,
+      browserLocalPersistence
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-auth.js";
+    import {
+      getDatabase,
+      ref,
+      set,
+      get,
+      remove,
+      push,
+      onValue,
+      onChildAdded,
+      onDisconnect,
+      serverTimestamp,
+      runTransaction,
+      query,
+      limitToLast
+    } from "https://www.gstatic.com/firebasejs/12.15.0/firebase-database.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyCYQR2GRFluCsbb7Dt0Q6LViv8POBY49tQ",
+      authDomain: "chess-b0cd7.firebaseapp.com",
+      databaseURL: "https://chess-b0cd7-default-rtdb.firebaseio.com",
+      projectId: "chess-b0cd7",
+      storageBucket: "chess-b0cd7.firebasestorage.app",
+      messagingSenderId: "116791163091",
+      appId: "1:116791163091:web:efc27460bbf63448057c26"
+    };
+
+    const firebaseApp = initializeApp(firebaseConfig);
+    const firebaseAuth = getAuth(firebaseApp);
+    const firebaseDb = getDatabase(firebaseApp);
+
     const FILES = "abcdefgh";
+    const PIECE_GLYPHS = {
+      K: "♔", Q: "♕", R: "♖", B: "♗", N: "♘", P: "♙",
+      k: "♚", q: "♛", r: "♜", b: "♝", n: "♞", p: "♟"
+    };
     const PIECE_NAMES = { K: "킹", Q: "퀸", R: "룩", B: "비숍", N: "나이트", P: "폰" };
     const START_FEN = "rnbqkbnr/pppppppp/8/8/8/8/PPPPPPPP/RNBQKBNR w KQkq - 0 1";
-
-    function pieceSvgMarkup(piece, extraClass = "") {
-      const color = pieceColor(piece);
-      const isWhite = color === "w";
-      const fill = isWhite ? "#f8fbff" : "#1b2435";
-      const stroke = isWhite ? "#162033" : "#eaf0fb";
-      const accent = isWhite ? "#d8e1ef" : "#55647f";
-      const shadow = isWhite ? "rgba(17,24,39,0.1)" : "rgba(255,255,255,0.08)";
-      const common = `fill="${fill}" stroke="${stroke}" stroke-width="4.2" stroke-linecap="round" stroke-linejoin="round"`;
-      const base = `<ellipse cx="50" cy="90" rx="27" ry="5" fill="${shadow}" stroke="none" opacity="0.65"></ellipse>`;
-      const type = piece.toUpperCase();
-      let content = "";
-
-      if (type === "P") {
-        content = `${base}<circle cx="50" cy="28" r="11" ${common}></circle><path d="M38 72c0-11 4-20 12-25c8 5 12 14 12 25z" ${common}></path><path d="M34 72h32v7H34z" ${common}></path><path d="M26 82h48v7H26z" ${common}></path>`;
-      } else if (type === "R") {
-        content = `${base}<path d="M28 20h12v9H28zM44 20h12v9H44zM60 20h12v9H60z" ${common}></path><path d="M26 29h48v7H26z" ${common}></path><path d="M34 36h32v33H34z" ${common}></path><path d="M31 69h38v8H31z" ${common}></path><path d="M24 81h52v8H24z" ${common}></path><path d="M40 44v18M50 44v18M60 44v18" fill="none" stroke="${accent}" stroke-width="3.2" stroke-linecap="round"></path>`;
-      } else if (type === "N") {
-        content = `${base}<path d="M69 24c-8 0-16 4-22 11l-10 5l7 9c-5 5-7 11-7 18v8h34c0-7-2-14-5-19l7-4c4-3 8-8 8-15c0-6-5-13-12-13z" ${common}></path><path d="M43 41c7-4 15-4 21 1" fill="none" stroke="${accent}" stroke-width="3.4"></path><circle cx="58" cy="33" r="2.7" fill="${stroke}" stroke="none"></circle><path d="M33 75h40v7H33z" ${common}></path><path d="M27 84h49v6H27z" ${common}></path>`;
-      } else if (type === "B") {
-        content = `${base}<path d="M50 20c-10 8-17 18-17 27c0 7 4 12 10 15l-4 12h22l-4-12c6-3 10-8 10-15c0-9-7-19-17-27z" ${common}></path><circle cx="57" cy="18" r="4.5" ${common}></circle><path d="M45 31l13 14" fill="none" stroke="${accent}" stroke-width="3.2"></path><path d="M33 75h34v7H33z" ${common}></path><path d="M26 84h48v6H26z" ${common}></path>`;
-      } else if (type === "Q") {
-        content = `${base}<circle cx="20" cy="24" r="5.5" ${common}></circle><circle cx="37" cy="16" r="5.5" ${common}></circle><circle cx="50" cy="24" r="5.5" ${common}></circle><circle cx="63" cy="16" r="5.5" ${common}></circle><circle cx="80" cy="24" r="5.5" ${common}></circle><path d="M22 30l8 26h40l8-26l-14 10l-14-16l-14 16z" ${common}></path><path d="M30 56h40v10H30z" ${common}></path><path d="M25 79h50v8H25z" ${common}></path><path d="M34 66h32" fill="none" stroke="${accent}" stroke-width="3.2"></path>`;
-      } else if (type === "K") {
-        content = `${base}<path d="M50 10v16M42 18h16" fill="none" stroke="${stroke}" stroke-width="4.6" stroke-linecap="round"></path><path d="M38 32c0-7 5-12 12-12s12 5 12 12c0 5-2 9-5 12h9c4 0 7 3 7 7v7H27v-7c0-4 3-7 7-7h9c-3-3-5-7-5-12z" ${common}></path><path d="M31 58h38v10H31z" ${common}></path><path d="M24 80h52v8H24z" ${common}></path><path d="M36 68h28" fill="none" stroke="${accent}" stroke-width="3.2"></path>`;
-      }
-
-      return `<svg class="${extraClass}" viewBox="0 0 100 100" aria-hidden="true" focusable="false">${content}</svg>`;
-    }
 
     const boardEl = document.getElementById("board");
     const topPlayerEl = document.getElementById("topPlayer");
@@ -974,7 +928,6 @@
     const chatLog = document.getElementById("chatLog");
     const chatInput = document.getElementById("chatInput");
     const toastEl = document.getElementById("toast");
-    const logoIcon = document.getElementById("logoIcon");
 
     let game = createInitialGame();
     let selectedSquare = -1;
@@ -984,41 +937,28 @@
     let soundEnabled = true;
     let audioContext = null;
 
-    let peerClient = null;
-    let dataConnection = null;
-    let opponentConnection = null;
-    let hostConnections = new Map();
     let networkMode = "offline";
     let networkRole = null;
     let connectionRole = null;
     let localColor = null;
     let remoteColor = null;
     let connected = false;
-    let connecting = false;
-    let pendingHostColor = "w";
-    let roomPeerId = null;
-    let roomToken = null;
+    let firebaseOnline = false;
+    let authUser = null;
+    let roomId = null;
     let inviteLink = "";
-    let opponentDeviceId = null;
-    let opponentSeatToken = null;
+    let roomMeta = null;
     let spectatorCount = 0;
-    let seatToken = "";
-    let reconnectTimer = null;
-    let connectionAttemptTimer = null;
-    let heartbeatTimer = null;
-    let reconnectAttempts = 0;
-    let hostPeerRetries = 0;
-    let clientConnectionGeneration = 0;
-    let clientLastSeen = 0;
-    let manualDisconnect = false;
-    let connectionRoute = "";
-    let pendingJoinInfo = null;
-    let forceRelayMode = false;
-    const APP_PROTOCOL = "peer-chess-v3";
-    const HOST_ROOM_STORAGE = "peerChessHostRoomV3";
-    const MAX_RECONNECT_ATTEMPTS = 30;
-    const deviceId = getOrCreateDeviceId();
-    if (logoIcon) logoIcon.innerHTML = pieceSvgMarkup("n");
+    let serverRevision = 0;
+    let stateWritePending = false;
+    let presenceRef = null;
+    let presenceDisconnect = null;
+    let roomUnsubscribers = [];
+    let seenChatKeys = new Set();
+    let restoringRemoteState = false;
+    const HOST_ROOM_STORAGE = "firebaseChessHostRoomV1";
+    const OPPONENT_SEAT_PREFIX = "firebaseChessOpponentSeatV1:";
+    const connectionId = randomToken(10);
 
     function createInitialGame() {
       const state = parseFen(START_FEN);
@@ -1520,23 +1460,18 @@
       pendingPromotion = null;
       renderAll();
       playMoveSound(Boolean(captureBefore), san.endsWith("+") || san.endsWith("#"));
-      if (networkRole === "host") persistHostRoom();
-
-      if (options.send !== false && connected) {
-        sendData({
-          type: "move",
-          move: { from: exact.from, to: exact.to, promotion: exact.promotion || null },
-          ply: game.moveHistory.length,
-          key: positionKey(game)
-        });
+      if (options.send !== false && networkMode === "firebase") {
+        publishCurrentGame("move");
       }
       return true;
     }
 
     function canLocalMove(color) {
-      if (game.result) return false;
+      if (game.result || stateWritePending) return false;
       if (networkMode === "offline") return true;
-      return connected && localColor === color;
+      if (connectionRole === "spectator") return false;
+      if (!connected || !roomMeta || !roomMeta.opponentUid) return false;
+      return localColor === color;
     }
 
     function onSquareClick(square) {
@@ -1588,7 +1523,7 @@
         button.type = "button";
         button.className = "promotion-option";
         const piece = color === "w" ? type.toUpperCase() : type;
-        button.innerHTML = pieceSvgMarkup(piece);
+        button.textContent = PIECE_GLYPHS[piece];
         button.setAttribute("aria-label", PIECE_NAMES[type.toUpperCase()]);
         button.addEventListener("click", () => {
           const move = pendingPromotion.find(candidate => candidate.promotion === type);
@@ -1633,8 +1568,8 @@
         const piece = game.board[square];
         if (piece) {
           const span = document.createElement("span");
-          span.className = "piece";
-          span.innerHTML = pieceSvgMarkup(piece);
+          span.className = `piece ${pieceColor(piece) === "w" ? "white-piece" : "black-piece"}`;
+          span.textContent = PIECE_GLYPHS[piece];
           button.appendChild(span);
         }
 
@@ -1658,12 +1593,12 @@
 
     function capturedFor(color) {
       const order = { P: 1, N: 2, B: 3, R: 4, Q: 5 };
-      const pieces = game.moveHistory
+      return game.moveHistory
         .filter(entry => entry.captured && pieceColor(entry.captured) === color)
         .map(entry => entry.captured)
-        .sort((a, b) => order[a.toUpperCase()] - order[b.toUpperCase()]);
-      if (pieces.length === 0) return '<span class="hint">없음</span>';
-      return pieces.map(piece => `<span class="captured-piece">${pieceSvgMarkup(piece)}</span>`).join("");
+        .sort((a, b) => order[a.toUpperCase()] - order[b.toUpperCase()])
+        .map(piece => PIECE_GLYPHS[piece])
+        .join("");
     }
 
     function playerCardHtml(color, isTop) {
@@ -1685,7 +1620,7 @@
       }
       const captured = capturedFor(opposite(color));
       const avatarClass = color === "b" ? "avatar black" : "avatar";
-      const king = pieceSvgMarkup(color === "w" ? "K" : "k", "avatar-piece");
+      const king = color === "w" ? "♔" : "♚";
       return `<div class="player-left"><div class="${avatarClass}">${king}</div><div><div class="player-name">${escapeHtml(name)}</div><div class="player-meta">${escapeHtml(meta)}</div></div></div><div class="captured">${captured}</div>`;
     }
 
@@ -1736,7 +1671,7 @@
       return {
         fen: stateToFen(game),
         moveHistory: game.moveHistory,
-        positionCounts: game.positionCounts,
+        positionCountsJson: JSON.stringify(game.positionCounts || {}),
         result: game.result,
         lastMove: game.lastMove,
         resignedBy: game.resignedBy
@@ -1744,12 +1679,18 @@
     }
 
     function loadSerializedGame(data) {
-      const state = parseFen(data.fen || START_FEN);
-      state.moveHistory = Array.isArray(data.moveHistory) ? data.moveHistory : [];
-      state.positionCounts = data.positionCounts && typeof data.positionCounts === "object" ? data.positionCounts : {};
-      state.result = data.result || null;
-      state.lastMove = data.lastMove || null;
-      state.resignedBy = data.resignedBy || null;
+      const state = parseFen((data && data.fen) || START_FEN);
+      state.moveHistory = data && Array.isArray(data.moveHistory) ? data.moveHistory : [];
+      try {
+        state.positionCounts = data && typeof data.positionCountsJson === "string"
+          ? JSON.parse(data.positionCountsJson)
+          : (data && data.positionCounts && typeof data.positionCounts === "object" ? data.positionCounts : {});
+      } catch (error) {
+        state.positionCounts = {};
+      }
+      state.result = data && data.result ? data.result : null;
+      state.lastMove = data && data.lastMove ? data.lastMove : null;
+      state.resignedBy = data && data.resignedBy ? data.resignedBy : null;
       if (Object.keys(state.positionCounts).length === 0) recordPosition(state);
       game = state;
       selectedSquare = -1;
@@ -1759,30 +1700,30 @@
     }
 
     function newGame(send = true) {
+      if (networkMode === "firebase" && connectionRole !== "host") {
+        showToast("새 대국은 방장만 시작할 수 있습니다");
+        return;
+      }
       game = createInitialGame();
       selectedSquare = -1;
       selectedMoves = [];
       pendingPromotion = null;
       renderAll();
       addSystemMessage("새 대국이 시작되었습니다.");
-      if (networkRole === "host") persistHostRoom();
-      if (send && (connected || (networkRole === "host" && openHostConnectionRecords().length > 0))) {
-        sendData({ type: "newGame", state: serializeGame() });
-      }
+      if (send && networkMode === "firebase") publishCurrentGame("newGame");
     }
 
     function resign() {
       if (game.result) return;
       const color = networkMode === "offline" ? game.turn : localColor;
-      if (!color) {
-        showToast("연결 후 기권할 수 있습니다");
+      if (!color || connectionRole === "spectator") {
+        showToast("대국자만 기권할 수 있습니다");
         return;
       }
       game.resignedBy = color;
       game.result = evaluateResult(game);
       renderAll();
-      if (networkRole === "host") persistHostRoom();
-      if (connected) sendData({ type: "resign", color });
+      if (networkMode === "firebase") publishCurrentGame("resign");
     }
 
     function exportPgn() {
@@ -1823,999 +1764,439 @@
       return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
     }
 
-    function getOrCreateDeviceId() {
-      const key = "peerChessDeviceIdV3";
-      try {
-        let value = localStorage.getItem(key);
-        if (!value || !/^[A-Za-z0-9_-]{16,}$/.test(value)) {
-          value = randomToken(24);
-          localStorage.setItem(key, value);
-        }
-        return value;
-      } catch (error) {
-        console.debug(error);
-        return randomToken(24);
-      }
-    }
-
-    function guestSeatStorageKey(hostId) {
-      return `peerChessSeatV3:${hostId}`;
-    }
-
-    function getStoredGuestSeat(hostId) {
-      try {
-        const value = localStorage.getItem(guestSeatStorageKey(hostId));
-        return value && /^[A-Za-z0-9_-]{16,}$/.test(value) ? value : "";
-      } catch (error) {
-        console.debug(error);
-        return "";
-      }
-    }
-
-    function saveGuestSeat(hostId, token) {
-      if (!hostId || !token) return;
-      try {
-        localStorage.setItem(guestSeatStorageKey(hostId), token);
-      } catch (error) {
-        console.debug(error);
-      }
-    }
-
-    function getTurnSettings() {
-      try {
-        const saved = JSON.parse(localStorage.getItem("peerChessTurn") || "null");
-        if (!saved || typeof saved.url !== "string") return null;
-        return saved;
-      } catch (error) {
-        console.debug(error);
-        return null;
-      }
-    }
-
-    function loadTurnSettingsIntoUi() {
-      const saved = getTurnSettings();
-      if (!saved) return;
-      document.getElementById("turnUrl").value = saved.url || "";
-      document.getElementById("turnUsername").value = saved.username || "";
-      document.getElementById("turnCredential").value = saved.credential || "";
-    }
-
-    function saveTurnSettings() {
-      const url = document.getElementById("turnUrl").value.trim();
-      const username = document.getElementById("turnUsername").value.trim();
-      const credential = document.getElementById("turnCredential").value;
-      if (!url) {
-        localStorage.removeItem("peerChessTurn");
-        showToast("사용자 TURN 설정을 삭제했습니다");
-        return;
-      }
-      if (!/^turns?:/i.test(url)) {
-        showToast("TURN 주소는 turn: 또는 turns:로 시작해야 합니다");
-        return;
-      }
-      localStorage.setItem("peerChessTurn", JSON.stringify({ url, username, credential }));
-      showToast("사용자 TURN 설정을 저장했습니다");
-    }
-
-    async function createOpenRelayCredentials() {
-      const fallback = { username: "openrelayproject", credential: "openrelayproject" };
-      try {
-        if (!crypto.subtle || typeof TextEncoder === "undefined") return fallback;
-        const expiry = Math.floor(Date.now() / 1000) + 86400;
-        const username = `${expiry}:${deviceId.slice(0, 14)}`;
-        const encoder = new TextEncoder();
-        const key = await crypto.subtle.importKey(
-          "raw",
-          encoder.encode("openrelayprojectsecret"),
-          { name: "HMAC", hash: "SHA-1" },
-          false,
-          ["sign"]
-        );
-        const signature = await crypto.subtle.sign("HMAC", key, encoder.encode(username));
-        let binary = "";
-        new Uint8Array(signature).forEach(byte => { binary += String.fromCharCode(byte); });
-        return { username, credential: btoa(binary) };
-      } catch (error) {
-        console.debug(error);
-        return fallback;
-      }
-    }
-
-    async function peerOptions(relayOnly = false) {
-      const temporaryTurn = await createOpenRelayCredentials();
-      const iceServers = [
-        {
-          urls: [
-            "stun:stun.l.google.com:19302",
-            "stun:stun1.l.google.com:19302",
-            "stun:stun.cloudflare.com:3478",
-            "stun:openrelay.metered.ca:80"
-          ]
-        },
-        {
-          urls: [
-            "turn:staticauth.openrelay.metered.ca:80",
-            "turn:staticauth.openrelay.metered.ca:443",
-            "turn:staticauth.openrelay.metered.ca:80?transport=tcp",
-            "turn:staticauth.openrelay.metered.ca:443?transport=tcp",
-            "turns:staticauth.openrelay.metered.ca:443?transport=tcp"
-          ],
-          username: temporaryTurn.username,
-          credential: temporaryTurn.credential
-        },
-        {
-          urls: [
-            "turn:openrelay.metered.ca:80",
-            "turn:openrelay.metered.ca:443",
-            "turn:openrelay.metered.ca:443?transport=tcp",
-            "turns:openrelay.metered.ca:443?transport=tcp"
-          ],
-          username: "openrelayproject",
-          credential: "openrelayproject"
-        }
-      ];
-      const turn = getTurnSettings();
-      if (turn && turn.url) {
-        iceServers.unshift({
-          urls: turn.url,
-          username: turn.username || "",
-          credential: turn.credential || ""
-        });
-      }
-      return {
-        host: "0.peerjs.com",
-        port: 443,
-        path: "/",
-        secure: true,
-        debug: 1,
-        pingInterval: 5000,
-        config: {
-          iceServers,
-          iceTransportPolicy: relayOnly ? "relay" : "all",
-          iceCandidatePoolSize: 8,
-          bundlePolicy: "max-bundle",
-          rtcpMuxPolicy: "require",
-          sdpSemantics: "unified-plan"
-        }
-      };
-    }
-
     function setActiveTab(name) {
       document.querySelectorAll(".tab").forEach(item => item.classList.toggle("active", item.dataset.tab === name));
       document.querySelectorAll(".tab-page").forEach(item => item.classList.toggle("active", item.id === "tab-" + name));
     }
 
-    function buildInviteLink(hostId, token) {
+    function buildInviteLink(id) {
       const base = location.href.split("#")[0];
-      const params = new URLSearchParams({ join: hostId, token });
-      return base + "#" + params.toString();
+      return `${base}#room=${encodeURIComponent(id)}`;
     }
 
     function parseInvite(rawValue) {
       const value = String(rawValue || "").trim();
       if (!value) throw new Error("초대 링크를 입력하세요");
-      let hash = value;
-      if (value.includes("#")) hash = value.slice(value.indexOf("#") + 1);
-      if (hash.startsWith("#")) hash = hash.slice(1);
-      const params = new URLSearchParams(hash);
-      let hostId = params.get("join");
-      let token = params.get("token");
-      if (!hostId || !token) {
-        const separator = value.lastIndexOf("~");
-        if (separator > 0) {
-          hostId = value.slice(0, separator).trim();
-          token = value.slice(separator + 1).trim();
-        }
-      }
-      if (!hostId || !/^pc-[a-z0-9]+$/i.test(hostId) || !token || token.length < 12) {
-        throw new Error("올바른 Peer Chess 초대 링크가 아닙니다");
-      }
-      return { hostId, token };
+      const hash = value.includes("#") ? value.slice(value.indexOf("#") + 1) : value;
+      const params = new URLSearchParams(hash.replace(/^#/, ""));
+      const id = params.get("room") || value;
+      if (!/^fc-[A-Za-z0-9_-]{20,}$/.test(id)) throw new Error("올바른 Peer Chess 초대 링크가 아닙니다");
+      return { roomId: id };
     }
 
-    function persistHostRoom() {
-      if (networkRole !== "host" || !roomPeerId || !roomToken) return;
-      try {
-        const previous = JSON.parse(localStorage.getItem(HOST_ROOM_STORAGE) || "null");
-        localStorage.setItem(HOST_ROOM_STORAGE, JSON.stringify({
-          id: roomPeerId,
-          token: roomToken,
-          color: localColor,
-          opponentDeviceId,
-          opponentSeatToken,
-          game: serializeGame(),
-          createdAt: previous && previous.id === roomPeerId ? previous.createdAt : Date.now(),
-          updatedAt: Date.now()
-        }));
-      } catch (error) {
-        console.debug(error);
-      }
+    function seatStorageKey(id) {
+      return OPPONENT_SEAT_PREFIX + id;
+    }
+
+    function getStoredSeatToken(id) {
+      try { return localStorage.getItem(seatStorageKey(id)) || ""; }
+      catch (error) { return ""; }
+    }
+
+    function saveSeatToken(id, token) {
+      try { localStorage.setItem(seatStorageKey(id), token); }
+      catch (error) { console.debug(error); }
+    }
+
+    function saveHostRoom(id) {
+      try { localStorage.setItem(HOST_ROOM_STORAGE, JSON.stringify({ roomId: id, savedAt: Date.now() })); }
+      catch (error) { console.debug(error); }
     }
 
     function readSavedHostRoom() {
       try {
         const saved = JSON.parse(localStorage.getItem(HOST_ROOM_STORAGE) || "null");
-        if (!saved || !/^pc-[a-z0-9]+$/i.test(saved.id || "") || !saved.token || !["w", "b"].includes(saved.color)) return null;
-        return saved;
+        return saved && /^fc-[A-Za-z0-9_-]{20,}$/.test(saved.roomId || "") ? saved : null;
       } catch (error) {
-        console.debug(error);
         return null;
       }
     }
 
     function clearSavedHostRoom() {
-      try { localStorage.removeItem(HOST_ROOM_STORAGE); } catch (error) { console.debug(error); }
+      try { localStorage.removeItem(HOST_ROOM_STORAGE); }
+      catch (error) { console.debug(error); }
     }
 
-    function attachPeerEvents(peer) {
-      peer.on("disconnected", () => {
-        if (peerClient !== peer || manualDisconnect || peer.destroyed) return;
-        networkStatus.textContent = connected ? "대국 연결 유지 중" : "연결 서버 재접속 중";
-        setTimeout(() => {
-          try {
-            if (!peer.destroyed && peer.disconnected) peer.reconnect();
-          } catch (error) {
-            console.debug(error);
-          }
-        }, 900);
-      });
-
-      peer.on("close", () => {
-        if (peerClient !== peer || manualDisconnect) return;
-        if (networkRole === "client") scheduleGuestReconnect("연결 서버 종료");
-        else setConnected(false);
-      });
-
-      peer.on("error", error => {
-        console.error(error);
-        if (peerClient !== peer || manualDisconnect) return;
-        const messageByType = {
-          "peer-unavailable": "방장을 찾지 못했습니다. 방장이 페이지를 닫았거나 연결을 복구 중일 수 있습니다.",
-          "network": "연결 서버에 접속하지 못했습니다.",
-          "server-error": "연결 서버 오류가 발생했습니다.",
-          "socket-error": "연결 서버 통신 오류가 발생했습니다.",
-          "browser-incompatible": "이 브라우저는 WebRTC 연결을 지원하지 않습니다.",
-          "unavailable-id": "방 주소가 아직 사용 중입니다. 잠시 뒤 자동으로 복구합니다."
-        };
-        const text = messageByType[error.type] || error.message || "온라인 연결 오류가 발생했습니다";
-        networkStatus.textContent = "연결 복구 중";
-        if (error.type !== "peer-unavailable" || reconnectAttempts > 1) showToast(text);
-
-        if (networkRole === "client" && ["peer-unavailable", "network", "socket-error", "server-error"].includes(error.type)) {
-          scheduleGuestReconnect(error.type);
-        } else if (networkRole === "host" && error.type === "unavailable-id" && hostPeerRetries < 6) {
-          hostPeerRetries += 1;
-          setTimeout(() => {
-            if (manualDisconnect || networkRole !== "host") return;
-            try { if (peerClient) peerClient.destroy(); } catch (destroyError) { console.debug(destroyError); }
-            startHostPeer(true);
-          }, 1200 + hostPeerRetries * 700);
-        }
-      });
-    }
-
-    function inspectConnectionRoute(connection) {
-      const pc = connection && connection.peerConnection;
-      if (!pc || typeof pc.getStats !== "function") return;
-      setTimeout(async () => {
-        try {
-          const stats = await pc.getStats();
-          let selectedPair = null;
-          let localCandidate = null;
-          let remoteCandidate = null;
-          stats.forEach(report => {
-            if (report.type === "transport" && report.selectedCandidatePairId) {
-              selectedPair = stats.get(report.selectedCandidatePairId) || selectedPair;
-            }
-            if (report.type === "candidate-pair" && report.nominated && report.state === "succeeded") {
-              selectedPair = selectedPair || report;
-            }
-          });
-          if (selectedPair) {
-            localCandidate = stats.get(selectedPair.localCandidateId);
-            remoteCandidate = stats.get(selectedPair.remoteCandidateId);
-          }
-          const route = [localCandidate, remoteCandidate].some(candidate => candidate && candidate.candidateType === "relay")
-            ? "TURN 중계"
-            : "직접 P2P";
-          if ((networkRole === "host" && opponentConnection === connection) || (networkRole === "client" && dataConnection === connection)) {
-            connectionRoute = route;
-            setConnected(connected);
-          }
-        } catch (error) {
-          console.debug(error);
-        }
-      }, 1200);
-    }
-
-    function openHostConnectionRecords() {
-      return Array.from(hostConnections.values()).filter(record => record.connection && record.connection.open);
-    }
-
-    function refreshSpectatorCount() {
-      if (networkRole !== "host") return;
-      spectatorCount = openHostConnectionRecords().filter(record => record.role === "spectator").length;
-    }
-
-    function sendToConnection(connection, payload) {
-      if (!connection || !connection.open) return false;
-      try {
-        connection.send(payload);
-        return true;
-      } catch (error) {
-        console.debug(error);
-        return false;
+    async function ensureFirebaseAuth() {
+      if (authUser) return authUser;
+      try { await setPersistence(firebaseAuth, browserLocalPersistence); }
+      catch (error) { console.debug("Firebase auth persistence:", error); }
+      if (firebaseAuth.currentUser) {
+        authUser = firebaseAuth.currentUser;
+        return authUser;
       }
+      const credential = await signInAnonymously(firebaseAuth);
+      authUser = credential.user;
+      return authUser;
     }
 
-    function broadcastHost(payload, excludeConnection = null, roleFilter = null) {
-      for (const record of openHostConnectionRecords()) {
-        if (record.connection === excludeConnection) continue;
-        if (roleFilter && record.role !== roleFilter) continue;
-        sendToConnection(record.connection, payload);
+    function clearRoomListeners() {
+      for (const unsubscribe of roomUnsubscribers) {
+        try { unsubscribe(); } catch (error) { console.debug(error); }
       }
+      roomUnsubscribers = [];
+      seenChatKeys = new Set();
     }
 
-    function sendPresence() {
-      if (networkRole !== "host") return;
-      refreshSpectatorCount();
-      broadcastHost({
-        type: "presence",
-        spectatorCount,
-        opponentOnline: Boolean(opponentConnection && opponentConnection.open)
-      });
-      setConnected(Boolean(opponentConnection && opponentConnection.open));
-    }
-
-    function sendWelcome(record) {
-      sendToConnection(record.connection, {
-        type: "welcome",
-        role: record.role,
-        state: serializeGame(),
-        hostColor: localColor,
-        guestColor: remoteColor,
-        seatToken: record.role === "opponent" ? opponentSeatToken : null,
-        spectatorCount,
-        opponentOnline: Boolean(opponentConnection && opponentConnection.open)
-      });
-    }
-
-    function setupHostDataConnection(connection, role, incomingDeviceId) {
-      const recordId = connection.connectionId || `${incomingDeviceId}:${randomToken(7)}`;
-      for (const [key, record] of hostConnections.entries()) {
-        if (record.deviceId === incomingDeviceId && record.role === role) {
-          try { record.connection.close(); } catch (error) { console.debug(error); }
-          hostConnections.delete(key);
-        }
+    async function removePresence() {
+      if (presenceDisconnect) {
+        try { await presenceDisconnect.cancel(); } catch (error) { console.debug(error); }
       }
-      if (role === "opponent" && opponentConnection && opponentConnection !== connection) {
-        const previousOpponent = opponentConnection;
-        opponentConnection = null;
-        dataConnection = null;
-        try { previousOpponent.close(); } catch (error) { console.debug(error); }
+      if (presenceRef) {
+        try { await remove(presenceRef); } catch (error) { console.debug(error); }
       }
-
-      const record = {
-        id: recordId,
-        connection,
-        role,
-        deviceId: incomingDeviceId,
-        lastSeen: Date.now()
-      };
-      hostConnections.set(recordId, record);
-      disconnectBtn.disabled = false;
-
-      connection.on("open", () => {
-        if (!hostConnections.has(recordId)) return;
-        record.lastSeen = Date.now();
-        if (role === "opponent") {
-          opponentConnection = connection;
-          dataConnection = connection;
-          connectionRoute = "";
-          reconnectAttempts = 0;
-          addSystemMessage("상대가 연결되었습니다.");
-          inspectConnectionRoute(connection);
-        } else {
-          addSystemMessage("관전자가 입장했습니다.");
-        }
-        refreshSpectatorCount();
-        sendWelcome(record);
-        sendPresence();
-      });
-
-      connection.on("data", data => {
-        if (!hostConnections.has(recordId)) return;
-        record.lastSeen = Date.now();
-        try {
-          const message = typeof data === "string" ? JSON.parse(data) : data;
-          handleHostData(message, record);
-        } catch (error) {
-          console.error(error);
-        }
-      });
-
-      connection.on("close", () => {
-        if (!hostConnections.has(recordId)) return;
-        hostConnections.delete(recordId);
-        if (role === "opponent" && opponentConnection === connection) {
-          opponentConnection = null;
-          dataConnection = null;
-          connectionRoute = "";
-          addSystemMessage("상대의 연결이 끊겼습니다. 같은 기기로 재접속하면 자리가 복구됩니다.");
-        }
-        refreshSpectatorCount();
-        sendPresence();
-      });
-
-      connection.on("error", error => {
-        console.error(error);
-        if (role === "opponent") showToast("상대 연결을 복구하고 있습니다");
-      });
-
-      const pc = connection.peerConnection;
-      if (pc) {
-        const checkState = () => {
-          const state = pc.iceConnectionState;
-          if (state === "failed") {
-            try { connection.close(); } catch (error) { console.debug(error); }
-          }
-        };
-        pc.addEventListener("iceconnectionstatechange", checkState);
-      }
+      presenceDisconnect = null;
+      presenceRef = null;
     }
 
-    function handleIncomingConnection(connection) {
-      const metadata = connection.metadata || {};
-      const authorized = metadata.protocol === APP_PROTOCOL && metadata.token === roomToken;
-      const incomingDeviceId = typeof metadata.deviceId === "string" && metadata.deviceId.length >= 16
-        ? metadata.deviceId
-        : "anonymous-" + randomToken(18);
-      if (!authorized) {
-        connection.on("open", () => {
-          sendToConnection(connection, { type: "rejected", reason: "invalid-invite" });
-          setTimeout(() => connection.close(), 200);
-        });
+    function roleForUid(uid) {
+      if (!roomMeta || !uid) return "spectator";
+      if (uid === roomMeta.hostUid) return "host";
+      if (uid === roomMeta.opponentUid) return "opponent";
+      return "spectator";
+    }
+
+    function applyRole(role) {
+      connectionRole = role;
+      networkRole = role === "host" ? "host" : "client";
+      if (!roomMeta) return;
+      if (role === "host") {
+        localColor = roomMeta.hostColor;
+        remoteColor = roomMeta.guestColor;
+        orientation = localColor;
+      } else if (role === "opponent") {
+        localColor = roomMeta.guestColor;
+        remoteColor = roomMeta.hostColor;
+        orientation = localColor;
+      } else {
+        localColor = null;
+        remoteColor = null;
+        if (!["w", "b"].includes(orientation)) orientation = "w";
+      }
+      renderAll();
+    }
+
+    function updateServerStatus() {
+      statusDot.classList.toggle("online", firebaseOnline);
+      disconnectBtn.disabled = networkMode === "offline";
+      if (networkMode === "offline") {
+        networkStatus.textContent = "오프라인 대국";
+        connected = false;
+        renderPlayers();
         return;
       }
 
-      const presentedSeatToken = typeof metadata.seatToken === "string" ? metadata.seatToken : "";
-      let role = "spectator";
-      if (!opponentDeviceId) {
-        opponentDeviceId = incomingDeviceId;
-        opponentSeatToken = randomToken(30);
-        role = "opponent";
-        persistHostRoom();
-      } else if (incomingDeviceId === opponentDeviceId || (presentedSeatToken && presentedSeatToken === opponentSeatToken)) {
-        role = "opponent";
-        if (presentedSeatToken === opponentSeatToken && incomingDeviceId !== opponentDeviceId) {
-          opponentDeviceId = incomingDeviceId;
-          persistHostRoom();
-        }
-      }
-      setupHostDataConnection(connection, role, incomingDeviceId);
-    }
-
-    function setupClientDataConnection(connection) {
-      if (!connection) return;
-      if (dataConnection && dataConnection !== connection) {
-        try { dataConnection.close(); } catch (error) { console.debug(error); }
-      }
-      dataConnection = connection;
-      clientConnectionGeneration += 1;
-      const generation = clientConnectionGeneration;
-      connecting = true;
-      disconnectBtn.disabled = false;
-      networkStatus.textContent = forceRelayMode ? "TURN 중계 연결 중" : "연결 경로 탐색 중";
-      clearTimeout(connectionAttemptTimer);
-      connectionAttemptTimer = setTimeout(() => {
-        if (manualDisconnect || connected || dataConnection !== connection || generation !== clientConnectionGeneration) return;
-        try { connection.close(); } catch (error) { console.debug(error); }
-        if (!forceRelayMode) {
-          forceRelayMode = true;
-          showToast("직접 연결이 지연되어 TURN 중계로 다시 연결합니다");
-          joinRoom(pendingJoinInfo, true, true);
-        } else {
-          scheduleGuestReconnect("연결 시간 초과");
-        }
-      }, forceRelayMode ? 18000 : 12000);
-
-      connection.on("open", () => {
-        if (dataConnection !== connection || generation !== clientConnectionGeneration) return;
-        connecting = false;
-        reconnectAttempts = 0;
-        clientLastSeen = Date.now();
-        networkStatus.textContent = "접속 역할 확인 중";
-        inspectConnectionRoute(connection);
-      });
-
-      connection.on("data", data => {
-        if (dataConnection !== connection || generation !== clientConnectionGeneration) return;
-        clientLastSeen = Date.now();
-        try {
-          const message = typeof data === "string" ? JSON.parse(data) : data;
-          handleClientData(message);
-        } catch (error) {
-          console.error(error);
-        }
-      });
-
-      connection.on("close", () => {
-        if (dataConnection !== connection || generation !== clientConnectionGeneration) return;
-        clearTimeout(connectionAttemptTimer);
-        dataConnection = null;
-        connecting = false;
-        const wasConnected = connected;
-        setConnected(false);
-        if (wasConnected) addSystemMessage("연결이 끊겨 자동으로 복구하고 있습니다.");
-        if (!manualDisconnect) scheduleGuestReconnect("데이터 연결 종료");
-      });
-
-      connection.on("error", error => {
-        if (dataConnection !== connection || generation !== clientConnectionGeneration) return;
-        console.error(error);
-        if (!manualDisconnect) scheduleGuestReconnect("데이터 연결 오류");
-      });
-
-      const pc = connection.peerConnection;
-      if (pc) {
-        let disconnectedTimer = null;
-        pc.addEventListener("iceconnectionstatechange", () => {
-          if (dataConnection !== connection) return;
-          const state = pc.iceConnectionState;
-          if (state === "connected" || state === "completed") {
-            clearTimeout(disconnectedTimer);
-          } else if (state === "disconnected") {
-            clearTimeout(disconnectedTimer);
-            disconnectedTimer = setTimeout(() => {
-              if (pc.iceConnectionState === "disconnected" && !manualDisconnect) {
-                try { connection.close(); } catch (error) { console.debug(error); }
-              }
-            }, 5500);
-          } else if (state === "failed") {
-            if (!forceRelayMode) {
-              forceRelayMode = true;
-              try { connection.close(); } catch (error) { console.debug(error); }
-              setTimeout(() => {
-                if (!manualDisconnect && !connected && pendingJoinInfo) joinRoom(pendingJoinInfo, true, true);
-              }, 120);
-            } else {
-              try { connection.close(); } catch (error) { console.debug(error); }
-            }
-          }
-        });
-      }
-    }
-
-    function setConnected(value) {
-      connected = Boolean(value);
-      refreshSpectatorCount();
-      const hostHasAnyConnection = networkRole === "host" && openHostConnectionRecords().length > 0;
-      statusDot.classList.toggle("online", connected || hostHasAnyConnection);
-
-      if (networkMode === "offline") {
-        networkStatus.textContent = "오프라인 대국";
-      } else if (networkRole === "host") {
-        const spectatorText = `관전자 ${spectatorCount}명`;
-        if (connected) {
-          networkStatus.textContent = `상대 연결됨${connectionRoute ? " · " + connectionRoute : ""} · ${spectatorText}`;
-          document.getElementById("hostWaitingText").textContent = `상대와 대국 중입니다. ${spectatorText}`;
-        } else if (opponentDeviceId) {
-          networkStatus.textContent = `상대 재접속 대기 · ${spectatorText}`;
-          document.getElementById("hostWaitingText").textContent = `최초 상대의 재접속을 기다리는 중입니다. ${spectatorText}`;
-        } else {
-          networkStatus.textContent = `첫 상대 접속 대기 · ${spectatorText}`;
-          document.getElementById("hostWaitingText").textContent = `링크를 가장 먼저 연 사람이 상대가 됩니다. ${spectatorText}`;
-        }
-      } else if (networkRole === "client" && connected) {
-        if (connectionRole === "spectator") {
-          networkStatus.textContent = `관전 중${connectionRoute ? " · " + connectionRoute : ""} · 관전자 ${spectatorCount}명`;
-          document.getElementById("joinStatusText").textContent = "상대 자리가 이미 배정되어 관전자로 접속했습니다.";
-        } else {
-          const colorText = localColor === "w" ? "백" : "흑";
-          networkStatus.textContent = `상대로 연결됨${connectionRoute ? " · " + connectionRoute : ""} · 나는 ${colorText}`;
-          document.getElementById("joinStatusText").textContent = "상대 자리로 연결되었습니다. 새로고침해도 같은 기기에서는 자리가 유지됩니다.";
-        }
+      connected = firebaseOnline;
+      const opponentOnline = Boolean(roomMeta && roomMeta.opponentOnline);
+      if (!firebaseOnline) {
+        networkStatus.textContent = "서버 재연결 중";
+      } else if (connectionRole === "host") {
+        if (!roomMeta || !roomMeta.opponentUid) networkStatus.textContent = `첫 상대 접속 대기 · 관전자 ${spectatorCount}명`;
+        else networkStatus.textContent = `${opponentOnline ? "상대 접속 중" : "상대 재접속 대기"} · 관전자 ${spectatorCount}명`;
+        const waiting = document.getElementById("hostWaitingText");
+        if (waiting) waiting.textContent = !roomMeta || !roomMeta.opponentUid
+          ? `링크를 가장 먼저 연 사람이 상대가 됩니다. 관전자 ${spectatorCount}명`
+          : `${opponentOnline ? "상대와 연결되었습니다." : "최초 상대의 재접속을 기다리는 중입니다."} 관전자 ${spectatorCount}명`;
+      } else if (connectionRole === "opponent") {
+        networkStatus.textContent = `상대로 접속 · 관전자 ${spectatorCount}명`;
+        document.getElementById("joinStatusText").textContent = "상대 자리로 연결되었습니다. 새로고침해도 같은 자리가 유지됩니다.";
       } else {
-        networkStatus.textContent = connecting
-          ? (forceRelayMode ? "TURN 중계 연결 중" : "연결 중")
-          : "자동 재연결 대기";
+        networkStatus.textContent = `관전 중 · 관전자 ${spectatorCount}명`;
+        document.getElementById("joinStatusText").textContent = "이미 상대가 정해져 있어 관전자로 접속했습니다.";
       }
-      disconnectBtn.disabled = !(peerClient || dataConnection || hostConnections.size);
       renderPlayers();
     }
 
-    function sendData(payload) {
-      if (networkRole === "host") {
-        broadcastHost(payload);
-      } else if (dataConnection && dataConnection.open) {
-        sendToConnection(dataConnection, payload);
+    async function setupPresence() {
+      if (!roomId || !authUser || !firebaseOnline) return;
+      await removePresence();
+      presenceRef = ref(firebaseDb, `rooms/${roomId}/presence/${authUser.uid}/${connectionId}`);
+      presenceDisconnect = onDisconnect(presenceRef);
+      try {
+        await presenceDisconnect.remove();
+        await set(presenceRef, { connectedAt: serverTimestamp() });
+      } catch (error) {
+        console.debug("presence:", error);
       }
     }
 
-    function handleHostData(message, record) {
-      if (!message || typeof message.type !== "string") return;
-      if (message.type === "ping") {
-        sendToConnection(record.connection, { type: "pong", time: message.time || Date.now() });
-        return;
-      }
-      if (message.type === "pong") return;
-      if (message.type === "syncRequest") {
-        sendWelcome(record);
-        return;
-      }
-      if (message.type === "chat" && typeof message.text === "string") {
-        const text = message.text.slice(0, 200);
-        const label = record.role === "opponent" ? "상대" : "관전자";
-        addChatMessage(`${label}: ${text}`, false);
-        broadcastHost({ type: "chat", text, senderRole: record.role }, record.connection);
-        return;
-      }
-      if (record.role !== "opponent") return;
+    function watchRoom(id) {
+      clearRoomListeners();
+      const metaRef = ref(firebaseDb, `rooms/${id}/meta`);
+      const stateRef = ref(firebaseDb, `rooms/${id}/state`);
+      const presenceRoot = ref(firebaseDb, `rooms/${id}/presence`);
+      const chatRef = query(ref(firebaseDb, `rooms/${id}/chat`), limitToLast(100));
+      const connectedRef = ref(firebaseDb, ".info/connected");
 
-      if (message.type === "move") {
-        if (game.result || game.turn !== remoteColor) {
-          sendWelcome(record);
+      roomUnsubscribers.push(onValue(connectedRef, snapshot => {
+        firebaseOnline = snapshot.val() === true;
+        if (firebaseOnline) setupPresence();
+        updateServerStatus();
+      }));
+
+      roomUnsubscribers.push(onValue(metaRef, snapshot => {
+        const value = snapshot.val();
+        if (!value || value.closed) {
+          showToast("방이 종료되었거나 존재하지 않습니다");
+          leaveFirebaseRoom(true, true);
           return;
         }
-        const ok = makeMove(message.move, { send: false });
-        if (!ok || game.moveHistory.length !== message.ply || positionKey(game) !== message.key) {
-          sendWelcome(record);
-          return;
-        }
-        broadcastHost({
-          type: "move",
-          move: message.move,
-          ply: game.moveHistory.length,
-          key: positionKey(game)
-        }, record.connection);
-        return;
-      }
+        roomMeta = value;
+        const nextRole = roleForUid(authUser && authUser.uid);
+        if (nextRole !== connectionRole) applyRole(nextRole);
+        updateServerStatus();
+      }));
 
-      if (message.type === "resign" && message.color === remoteColor) {
-        game.resignedBy = message.color;
-        game.result = evaluateResult(game);
-        renderAll();
-        persistHostRoom();
-        broadcastHost({ type: "resign", color: message.color }, record.connection);
-      }
+      roomUnsubscribers.push(onValue(stateRef, snapshot => {
+        const value = snapshot.val();
+        if (!value) return;
+        const revision = Number(value.revision || 0);
+        if (revision === serverRevision && stateToFen(game) === value.fen) return;
+        restoringRemoteState = true;
+        serverRevision = revision;
+        loadSerializedGame(value);
+        restoringRemoteState = false;
+      }));
+
+      roomUnsubscribers.push(onValue(presenceRoot, snapshot => {
+        const allPresence = snapshot.val() || {};
+        const onlineUids = Object.keys(allPresence).filter(uid => allPresence[uid] && Object.keys(allPresence[uid]).length > 0);
+        spectatorCount = roomMeta
+          ? onlineUids.filter(uid => uid !== roomMeta.hostUid && uid !== roomMeta.opponentUid).length
+          : 0;
+        if (roomMeta) {
+          roomMeta.hostOnline = onlineUids.includes(roomMeta.hostUid);
+          roomMeta.opponentOnline = roomMeta.opponentUid ? onlineUids.includes(roomMeta.opponentUid) : false;
+        }
+        updateServerStatus();
+      }));
+
+      roomUnsubscribers.push(onChildAdded(chatRef, snapshot => {
+        if (seenChatKeys.has(snapshot.key)) return;
+        seenChatKeys.add(snapshot.key);
+        const message = snapshot.val();
+        if (!message || typeof message.text !== "string") return;
+        const mine = Boolean(authUser && message.uid === authUser.uid);
+        let label = "관전자";
+        if (roomMeta && message.uid === roomMeta.hostUid) label = "방장";
+        else if (roomMeta && message.uid === roomMeta.opponentUid) label = "상대";
+        addChatMessage(mine ? message.text : `${label}: ${message.text}`, mine);
+      }));
     }
 
-    function handleClientData(message) {
-      if (!message || typeof message.type !== "string") return;
-      if (message.type === "ping") {
-        sendData({ type: "pong", time: message.time || Date.now() });
-        return;
-      }
-      if (message.type === "pong") return;
-      if (message.type === "rejected") {
-        showToast("초대 링크가 올바르지 않거나 방이 종료되었습니다");
-        closePeer(true, false, true);
-        return;
-      }
-      if (message.type === "welcome") {
-        clearTimeout(connectionAttemptTimer);
-        networkMode = "p2p";
-        networkRole = "client";
-        connectionRole = message.role === "opponent" ? "opponent" : "spectator";
-        spectatorCount = Number.isFinite(message.spectatorCount) ? message.spectatorCount : 0;
-        if (connectionRole === "opponent") {
-          localColor = message.guestColor;
-          remoteColor = message.hostColor;
-          orientation = localColor;
-          if (message.seatToken) {
-            seatToken = message.seatToken;
-            saveGuestSeat(pendingJoinInfo.hostId, seatToken);
-          }
-          addSystemMessage("상대 자리로 연결되었습니다.");
-        } else {
-          localColor = null;
-          remoteColor = message.hostColor || null;
-          orientation = "w";
-          addSystemMessage("관전자로 연결되었습니다.");
-        }
-        loadSerializedGame(message.state);
-        setConnected(true);
-        startHeartbeat();
-        return;
-      }
-      if (message.type === "presence") {
-        spectatorCount = Number.isFinite(message.spectatorCount) ? message.spectatorCount : spectatorCount;
-        setConnected(connected);
-        return;
-      }
-      if (message.type === "move") {
-        if (!connected || game.result) return;
-        const ok = makeMove(message.move, { send: false });
-        if (!ok || game.moveHistory.length !== message.ply || positionKey(game) !== message.key) {
-          sendData({ type: "syncRequest" });
-        }
-        return;
-      }
-      if (message.type === "newGame" && message.state) {
-        loadSerializedGame(message.state);
-        addSystemMessage("방장이 새 대국을 시작했습니다.");
-        return;
-      }
-      if (message.type === "resign" && ["w", "b"].includes(message.color)) {
-        game.resignedBy = message.color;
-        game.result = evaluateResult(game);
-        renderAll();
-        return;
-      }
-      if (message.type === "chat" && typeof message.text === "string") {
-        const label = message.senderRole === "spectator" ? "관전자" : message.senderRole === "opponent" ? "상대" : "방장";
-        addChatMessage(`${label}: ${message.text.slice(0, 200)}`, false);
-      }
-    }
-
-    async function startHostPeer(restoring = false) {
-      if (typeof Peer === "undefined") {
-        showToast("온라인 연결 모듈을 불러오지 못했습니다");
-        return;
-      }
-      manualDisconnect = false;
-      const intendedRoomId = roomPeerId;
-      const options = await peerOptions(false);
-      if (manualDisconnect || networkRole !== "host" || roomPeerId !== intendedRoomId) return;
-      const currentPeer = new Peer(roomPeerId, options);
-      peerClient = currentPeer;
-      attachPeerEvents(currentPeer);
-      currentPeer.on("open", id => {
-        if (peerClient !== currentPeer) return;
-        hostPeerRetries = 0;
-        roomPeerId = id;
-        inviteLink = buildInviteLink(roomPeerId, roomToken);
+    async function attachRoom(id, role) {
+      roomId = id;
+      networkMode = "firebase";
+      applyRole(role);
+      inviteLink = buildInviteLink(id);
+      disconnectBtn.disabled = false;
+      if (role === "host") {
+        setActiveTab("host");
         document.getElementById("inviteLinkOutput").value = inviteLink;
         document.getElementById("inviteArea").hidden = false;
-        persistHostRoom();
-        setConnected(Boolean(opponentConnection && opponentConnection.open));
-        startHeartbeat();
-        if (restoring) addSystemMessage("기존 방과 대국 상태를 복구했습니다.");
-      });
-      currentPeer.on("connection", connection => {
-        if (peerClient !== currentPeer) {
-          connection.close();
-          return;
-        }
-        handleIncomingConnection(connection);
-      });
-    }
-
-    function createRoom() {
-      if (typeof Peer === "undefined") {
-        showToast("온라인 연결 모듈을 불러오지 못했습니다");
-        return;
+        saveHostRoom(id);
+      } else {
+        setActiveTab("join");
+        document.getElementById("joinInput").value = inviteLink;
       }
-      closePeer(false, true, false);
-      clearSavedHostRoom();
-      manualDisconnect = false;
-      networkMode = "p2p";
-      networkRole = "host";
-      connectionRole = "host";
-      pendingHostColor = document.getElementById("hostColor").value;
-      if (pendingHostColor === "random") pendingHostColor = Math.random() < 0.5 ? "w" : "b";
-      localColor = pendingHostColor;
-      remoteColor = opposite(localColor);
-      orientation = localColor;
-      opponentDeviceId = null;
-      opponentSeatToken = null;
-      spectatorCount = 0;
-      roomPeerId = "pc-" + randomToken(18).toLowerCase().replace(/[^a-z0-9]/g, "");
-      roomToken = randomToken(30);
-      inviteLink = buildInviteLink(roomPeerId, roomToken);
-      newGame(false);
-      setActiveTab("host");
-      document.getElementById("inviteLinkOutput").value = inviteLink;
-      document.getElementById("inviteArea").hidden = false;
-      document.getElementById("hostWaitingText").textContent = "방을 여는 중입니다.";
-      networkStatus.textContent = "방 생성 중";
-      disconnectBtn.disabled = false;
-      persistHostRoom();
-      startHostPeer(false);
+      watchRoom(id);
+      addSystemMessage(role === "host" ? "Firebase 서버 방을 열었습니다." : role === "opponent" ? "상대 자리로 입장했습니다." : "관전자로 입장했습니다.");
     }
 
-    function restoreHostRoom(saved) {
-      closePeer(false, true, true);
-      manualDisconnect = false;
-      networkMode = "p2p";
-      networkRole = "host";
-      connectionRole = "host";
-      localColor = saved.color;
-      remoteColor = opposite(localColor);
-      orientation = localColor;
-      roomPeerId = saved.id;
-      roomToken = saved.token;
-      opponentDeviceId = saved.opponentDeviceId || null;
-      opponentSeatToken = saved.opponentSeatToken || null;
-      spectatorCount = 0;
-      inviteLink = buildInviteLink(roomPeerId, roomToken);
-      if (saved.game) loadSerializedGame(saved.game);
-      setActiveTab("host");
-      document.getElementById("hostColor").value = localColor;
-      document.getElementById("inviteLinkOutput").value = inviteLink;
-      document.getElementById("inviteArea").hidden = false;
-      document.getElementById("hostWaitingText").textContent = "기존 방을 복구하는 중입니다.";
-      networkStatus.textContent = "방 복구 중";
-      disconnectBtn.disabled = false;
-      startHostPeer(true);
-    }
+    async function claimOrRecoverOpponent(id, meta) {
+      if (!authUser || authUser.uid === meta.hostUid) return "host";
+      if (meta.opponentUid === authUser.uid) return "opponent";
 
-    function connectGuestToHost() {
-      if (!peerClient || !pendingJoinInfo || peerClient.destroyed || connecting) return;
-      connecting = true;
-      networkStatus.textContent = forceRelayMode ? "TURN 중계 연결 중" : "방장에게 연결 중";
-      document.getElementById("joinStatusText").textContent = reconnectAttempts
-        ? `연결을 자동 복구하고 있습니다. ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`
-        : (forceRelayMode ? "TURN 중계 경로로 연결하고 있습니다." : "가장 빠른 연결 경로를 찾고 있습니다.");
-      seatToken = getStoredGuestSeat(pendingJoinInfo.hostId);
-      const connection = peerClient.connect(pendingJoinInfo.hostId, {
-        reliable: true,
-        serialization: "json",
-        metadata: {
-          protocol: APP_PROTOCOL,
-          token: pendingJoinInfo.token,
-          deviceId,
-          seatToken
-        }
-      });
-      setupClientDataConnection(connection);
-    }
-
-    function scheduleGuestReconnect(reason = "") {
-      if (manualDisconnect || networkRole !== "client" || !pendingJoinInfo || connected) return;
-      clearTimeout(reconnectTimer);
-      clearTimeout(connectionAttemptTimer);
-      if (reconnectAttempts >= MAX_RECONNECT_ATTEMPTS) {
-        document.getElementById("joinStatusText").textContent = "자동 재연결이 오래 지연되고 있습니다. 방장이 열려 있는지 확인한 뒤 다시 눌러 주세요.";
-        networkStatus.textContent = "재연결 지연";
-        return;
+      let token = getStoredSeatToken(id);
+      if (!token) {
+        token = randomToken(28);
+        saveSeatToken(id, token);
       }
-      reconnectAttempts += 1;
-      const delay = Math.min(1200 * Math.pow(1.32, reconnectAttempts - 1), 10000);
-      document.getElementById("joinStatusText").textContent = `연결을 자동 복구하고 있습니다. ${reconnectAttempts}/${MAX_RECONNECT_ATTEMPTS}`;
-      networkStatus.textContent = forceRelayMode ? "TURN 재연결 대기" : "자동 재연결 대기";
-      reconnectTimer = setTimeout(() => {
-        if (manualDisconnect || connected || networkRole !== "client") return;
-        connecting = false;
-        if (!navigator.onLine) {
-          scheduleGuestReconnect("오프라인");
-          return;
-        }
-        if (!peerClient || peerClient.destroyed) {
-          joinRoom(pendingJoinInfo, true, forceRelayMode);
-        } else if (peerClient.disconnected) {
-          try { peerClient.reconnect(); } catch (error) { console.debug(error); }
-          setTimeout(() => {
-            connecting = false;
-            connectGuestToHost();
-          }, 700);
-        } else {
-          connectGuestToHost();
-        }
-      }, delay);
-      if (reason) console.debug("Reconnect scheduled:", reason);
-    }
 
-    async function joinRoom(value, automatic = false, relayOnly = false) {
-      if (typeof Peer === "undefined") {
-        showToast("온라인 연결 모듈을 불러오지 못했습니다");
-        return;
-      }
       try {
-        pendingJoinInfo = typeof value === "object" && value.hostId ? value : parseInvite(value);
+        await set(ref(firebaseDb, `rooms/${id}/opponentSeat`), { uid: authUser.uid, token });
+        await set(ref(firebaseDb, `rooms/${id}/meta/opponentUid`), authUser.uid);
+        return "opponent";
       } catch (error) {
-        showToast(error.message);
-        return;
+        console.debug("opponent seat claim:", error);
       }
-      closePeer(false, true, true);
-      manualDisconnect = false;
-      networkMode = "p2p";
-      networkRole = "client";
-      connectionRole = null;
-      localColor = null;
-      remoteColor = null;
-      spectatorCount = 0;
-      forceRelayMode = Boolean(relayOnly);
-      reconnectAttempts = automatic ? reconnectAttempts : 0;
-      connecting = false;
-      setActiveTab("join");
-      document.getElementById("joinInput").value = buildInviteLink(pendingJoinInfo.hostId, pendingJoinInfo.token);
-      document.getElementById("joinStatusText").textContent = forceRelayMode ? "TURN 중계 서버에 연결하고 있습니다." : "연결 서버에 접속하고 있습니다.";
-      networkStatus.textContent = "연결 서버 접속 중";
-      disconnectBtn.disabled = false;
 
-      const intendedHostId = pendingJoinInfo.hostId;
-      const options = await peerOptions(forceRelayMode);
-      if (manualDisconnect || networkRole !== "client" || !pendingJoinInfo || pendingJoinInfo.hostId !== intendedHostId) return;
-      const currentPeer = new Peer(options);
-      peerClient = currentPeer;
-      attachPeerEvents(currentPeer);
-      currentPeer.on("open", () => {
-        if (peerClient !== currentPeer) return;
-        connecting = false;
-        connectGuestToHost();
-      });
+      const latestMetaSnapshot = await get(ref(firebaseDb, `rooms/${id}/meta`));
+      const latestMeta = latestMetaSnapshot.val();
+      return latestMeta && latestMeta.opponentUid === authUser.uid ? "opponent" : "spectator";
     }
 
-    function startHeartbeat() {
-      clearInterval(heartbeatTimer);
-      heartbeatTimer = setInterval(() => {
-        if (manualDisconnect || networkMode !== "p2p") return;
-        const now = Date.now();
-        if (networkRole === "host") {
-          for (const record of openHostConnectionRecords()) {
-            if (document.visibilityState === "visible" && now - record.lastSeen > 50000) {
-              try { record.connection.close(); } catch (error) { console.debug(error); }
-            } else {
-              sendToConnection(record.connection, { type: "ping", time: now });
-            }
-          }
-        } else if (networkRole === "client") {
-          if (dataConnection && dataConnection.open) {
-            if (document.visibilityState === "visible" && clientLastSeen && now - clientLastSeen > 50000) {
-              try { dataConnection.close(); } catch (error) { console.debug(error); }
-            } else {
-              sendData({ type: "ping", time: now });
-            }
-          }
+    async function createRoom() {
+      try {
+        await ensureFirebaseAuth();
+        await leaveFirebaseRoom(false, false);
+        networkStatus.textContent = "서버 방 생성 중";
+        const selectedColor = document.getElementById("hostColor").value;
+        const hostColor = selectedColor === "random" ? (Math.random() < 0.5 ? "w" : "b") : selectedColor;
+        const id = "fc-" + randomToken(24);
+        game = createInitialGame();
+        serverRevision = 0;
+        const state = {
+          ...serializeGame(),
+          revision: 0,
+          action: "create",
+          updatedBy: authUser.uid,
+          updatedAt: serverTimestamp()
+        };
+        await set(ref(firebaseDb, `rooms/${id}`), {
+          meta: {
+            hostUid: authUser.uid,
+            hostColor,
+            guestColor: opposite(hostColor),
+            createdAt: serverTimestamp(),
+            closed: false
+          },
+          state
+        });
+        const metaSnapshot = await get(ref(firebaseDb, `rooms/${id}/meta`));
+        roomMeta = metaSnapshot.val();
+        await attachRoom(id, "host");
+        renderAll();
+        showToast("초대 링크를 만들었습니다");
+      } catch (error) {
+        console.error(error);
+        showToast("Firebase 방을 만들지 못했습니다. 데이터베이스 규칙을 확인하세요.");
+        networkStatus.textContent = "방 생성 실패";
+      }
+    }
+
+    async function joinRoom(value) {
+      try {
+        const info = typeof value === "object" && value.roomId ? value : parseInvite(value);
+        await ensureFirebaseAuth();
+        await leaveFirebaseRoom(false, true);
+        networkStatus.textContent = "Firebase 서버 접속 중";
+        document.getElementById("joinStatusText").textContent = "방 정보를 확인하고 있습니다.";
+        const metaSnapshot = await get(ref(firebaseDb, `rooms/${info.roomId}/meta`));
+        const meta = metaSnapshot.val();
+        if (!meta || meta.closed) throw new Error("방이 종료되었거나 존재하지 않습니다");
+        roomMeta = meta;
+        let role = roleForUid(authUser.uid);
+        if (role === "spectator") role = await claimOrRecoverOpponent(info.roomId, meta);
+        const refreshed = await get(ref(firebaseDb, `rooms/${info.roomId}/meta`));
+        roomMeta = refreshed.val() || meta;
+        role = roleForUid(authUser.uid) === "spectator" ? role : roleForUid(authUser.uid);
+        await attachRoom(info.roomId, role);
+      } catch (error) {
+        console.error(error);
+        document.getElementById("joinStatusText").textContent = error.message || "방에 접속하지 못했습니다.";
+        showToast(error.message || "방에 접속하지 못했습니다");
+      }
+    }
+
+    async function restoreHostRoom(saved) {
+      try {
+        await ensureFirebaseAuth();
+        const metaSnapshot = await get(ref(firebaseDb, `rooms/${saved.roomId}/meta`));
+        const meta = metaSnapshot.val();
+        if (!meta || meta.closed || meta.hostUid !== authUser.uid) {
+          clearSavedHostRoom();
+          return;
         }
-      }, 10000);
+        roomMeta = meta;
+        const stateSnapshot = await get(ref(firebaseDb, `rooms/${saved.roomId}/state`));
+        if (stateSnapshot.exists()) {
+          const state = stateSnapshot.val();
+          serverRevision = Number(state.revision || 0);
+          loadSerializedGame(state);
+        }
+        await attachRoom(saved.roomId, "host");
+        addSystemMessage("기존 Firebase 방을 복구했습니다.");
+      } catch (error) {
+        console.error(error);
+        clearSavedHostRoom();
+      }
     }
 
-    function closePeer(resetMode = true, preserveJoin = false, preserveHostStorage = false) {
-      manualDisconnect = true;
-      clearTimeout(reconnectTimer);
-      clearTimeout(connectionAttemptTimer);
-      clearInterval(heartbeatTimer);
-      reconnectTimer = null;
-      connectionAttemptTimer = null;
-      heartbeatTimer = null;
-      connecting = false;
-      for (const record of hostConnections.values()) {
-        try { record.connection.close(); } catch (error) { console.debug(error); }
+    async function publishCurrentGame(action) {
+      if (networkMode !== "firebase" || !roomId || !authUser || restoringRemoteState || stateWritePending) return false;
+      if (!firebaseOnline) {
+        showToast("서버 연결이 복구된 뒤 다시 시도하세요");
+        return false;
       }
-      hostConnections.clear();
-      if (dataConnection) {
-        try { dataConnection.close(); } catch (error) { console.debug(error); }
+      stateWritePending = true;
+      const expectedRevision = serverRevision;
+      const payload = serializeGame();
+      try {
+        const result = await runTransaction(ref(firebaseDb, `rooms/${roomId}/state`), current => {
+          if (!current || Number(current.revision || 0) !== expectedRevision) return;
+          return {
+            ...payload,
+            revision: expectedRevision + 1,
+            action,
+            updatedBy: authUser.uid,
+            updatedAt: Date.now()
+          };
+        }, { applyLocally: false });
+        if (!result.committed) {
+          const latest = result.snapshot && result.snapshot.val();
+          if (latest) {
+            serverRevision = Number(latest.revision || 0);
+            loadSerializedGame(latest);
+          }
+          showToast("다른 기기의 최신 대국 상태를 불러왔습니다");
+          return false;
+        }
+        serverRevision = expectedRevision + 1;
+        return true;
+      } catch (error) {
+        console.error(error);
+        const latestSnapshot = await get(ref(firebaseDb, `rooms/${roomId}/state`)).catch(() => null);
+        if (latestSnapshot && latestSnapshot.exists()) {
+          const latest = latestSnapshot.val();
+          serverRevision = Number(latest.revision || 0);
+          loadSerializedGame(latest);
+        }
+        showToast("서버 저장에 실패해 최신 상태로 되돌렸습니다");
+        return false;
+      } finally {
+        stateWritePending = false;
       }
-      if (peerClient) {
-        try { peerClient.destroy(); } catch (error) { console.debug(error); }
+    }
+
+    async function leaveFirebaseRoom(resetMode = true, preserveHash = false, closeRoom = false) {
+      const previousRole = connectionRole;
+      const previousRoomId = roomId;
+      if (closeRoom && previousRoomId && authUser && previousRole === "host") {
+        try { await set(ref(firebaseDb, `rooms/${previousRoomId}/meta/closed`), true); }
+        catch (error) { console.debug(error); }
       }
-      dataConnection = null;
-      opponentConnection = null;
-      peerClient = null;
+      await removePresence();
+      clearRoomListeners();
       connected = false;
-      connectionRoute = "";
+      firebaseOnline = false;
+      roomMeta = null;
       spectatorCount = 0;
-      clientLastSeen = 0;
+      serverRevision = 0;
+      stateWritePending = false;
       statusDot.classList.remove("online");
-      disconnectBtn.disabled = true;
       if (resetMode) {
-        if (!preserveHostStorage) clearSavedHostRoom();
+        if (previousRole === "host") clearSavedHostRoom();
         networkMode = "offline";
         networkRole = null;
         connectionRole = null;
         localColor = null;
         remoteColor = null;
-        roomPeerId = null;
-        roomToken = null;
-        opponentDeviceId = null;
-        opponentSeatToken = null;
+        roomId = null;
         inviteLink = "";
         orientation = "w";
         networkStatus.textContent = "오프라인 대국";
+        disconnectBtn.disabled = true;
         document.getElementById("inviteArea").hidden = true;
         document.getElementById("joinStatusText").textContent = "";
-        if (!preserveJoin && location.hash) history.replaceState(null, "", location.href.split("#")[0]);
-      } else {
-        networkStatus.textContent = "연결 대기";
+        if (!preserveHash && location.hash) history.replaceState(null, "", location.href.split("#")[0]);
+        renderAll();
       }
-      renderPlayers();
     }
 
-
-    function startOffline() {
-      closePeer(true);
+    async function startOffline() {
+      const wasHost = connectionRole === "host";
+      await leaveFirebaseRoom(true, false, wasHost);
       networkMode = "offline";
       orientation = "w";
       newGame(false);
@@ -2839,17 +2220,25 @@
       chatLog.scrollTop = chatLog.scrollHeight;
     }
 
-    function sendChat() {
+    async function sendChat() {
       const text = chatInput.value.trim();
       if (!text) return;
-      const canSendChat = connected || (networkRole === "host" && openHostConnectionRecords().length > 0);
-      if (!canSendChat) {
-        showToast("온라인 연결 후 채팅할 수 있습니다");
+      if (networkMode !== "firebase" || !roomId || !authUser || !firebaseOnline) {
+        showToast("온라인 방에 접속한 뒤 채팅할 수 있습니다");
         return;
       }
-      addChatMessage(text, true);
-      sendData({ type: "chat", text });
       chatInput.value = "";
+      try {
+        const messageRef = push(ref(firebaseDb, `rooms/${roomId}/chat`));
+        await set(messageRef, {
+          uid: authUser.uid,
+          text: text.slice(0, 200),
+          createdAt: serverTimestamp()
+        });
+      } catch (error) {
+        console.error(error);
+        showToast("채팅 전송에 실패했습니다");
+      }
     }
 
     async function copyText(text, successMessage) {
@@ -2913,12 +2302,7 @@
     }
 
     document.querySelectorAll(".tab").forEach(tab => {
-      tab.addEventListener("click", () => {
-        document.querySelectorAll(".tab").forEach(item => item.classList.remove("active"));
-        document.querySelectorAll(".tab-page").forEach(item => item.classList.remove("active"));
-        tab.classList.add("active");
-        document.getElementById("tab-" + tab.dataset.tab).classList.add("active");
-      });
+      tab.addEventListener("click", () => setActiveTab(tab.dataset.tab));
     });
 
     document.getElementById("offlineBtn").addEventListener("click", startOffline);
@@ -2938,24 +2322,18 @@
       }
       copyText(inviteLink, "초대 링크를 복사했습니다");
     });
-    document.getElementById("saveTurnBtn").addEventListener("click", saveTurnSettings);
     document.getElementById("copyPgnBtn").addEventListener("click", () => copyText(exportPgn(), "PGN을 복사했습니다"));
-    disconnectBtn.addEventListener("click", () => {
-      closePeer(true);
-      addSystemMessage("연결을 종료했습니다.");
-      showToast("연결을 종료했습니다");
+    disconnectBtn.addEventListener("click", async () => {
+      const closeRoom = connectionRole === "host";
+      await leaveFirebaseRoom(true, false, closeRoom);
+      addSystemMessage(closeRoom ? "방을 종료했습니다." : "방에서 나왔습니다.");
+      showToast(closeRoom ? "방을 종료했습니다" : "방에서 나왔습니다");
     });
     document.getElementById("flipBtn").addEventListener("click", () => {
       orientation = opposite(orientation);
       renderAll();
     });
-    document.getElementById("newGameBtn").addEventListener("click", () => {
-      if (networkMode === "p2p" && networkRole !== "host") {
-        showToast("새 대국은 방장만 시작할 수 있습니다");
-        return;
-      }
-      newGame(true);
-    });
+    document.getElementById("newGameBtn").addEventListener("click", () => newGame(true));
     document.getElementById("resignBtn").addEventListener("click", resign);
     document.getElementById("soundBtn").addEventListener("click", event => {
       soundEnabled = !soundEnabled;
@@ -2966,42 +2344,37 @@
       if (event.key === "Enter") sendChat();
     });
 
-    window.addEventListener("beforeunload", () => closePeer(false, true, true));
-    window.addEventListener("online", () => {
-      if (networkRole === "client" && !connected) scheduleGuestReconnect("네트워크 복구");
-      if (networkRole === "host" && peerClient && peerClient.disconnected) {
-        try { peerClient.reconnect(); } catch (error) { console.debug(error); }
-      }
-    });
-    window.addEventListener("pageshow", () => {
-      if (networkRole === "client" && !connected && pendingJoinInfo) scheduleGuestReconnect("페이지 복귀");
-    });
-    document.addEventListener("visibilitychange", () => {
-      if (document.visibilityState !== "visible") return;
-      if (networkRole === "client" && !connected && pendingJoinInfo) scheduleGuestReconnect("화면 복귀");
-      if (networkRole === "host" && peerClient && peerClient.disconnected) {
-        try { peerClient.reconnect(); } catch (error) { console.debug(error); }
-      }
+    window.addEventListener("beforeunload", () => {
+      if (presenceRef) remove(presenceRef).catch(() => {});
     });
 
-    loadTurnSettingsIntoUi();
-    renderAll();
-    addSystemMessage("대국 준비가 완료되었습니다.");
-
-    if (location.hash.includes("join=")) {
+    async function initializeOnlineSystem() {
+      renderAll();
+      addSystemMessage("대국 준비가 완료되었습니다.");
       try {
-        const info = parseInvite(location.href);
-        pendingJoinInfo = info;
-        setActiveTab("join");
-        document.getElementById("joinInput").value = location.href;
-        setTimeout(() => joinRoom(info, true, false), 180);
+        await ensureFirebaseAuth();
       } catch (error) {
-        showToast(error.message);
+        console.error(error);
+        showToast("Firebase 익명 인증에 실패했습니다");
+        return;
       }
-    } else {
-      const savedHostRoom = readSavedHostRoom();
-      if (savedHostRoom) setTimeout(() => restoreHostRoom(savedHostRoom), 180);
+
+      if (location.hash.includes("room=")) {
+        try {
+          const info = parseInvite(location.href);
+          setActiveTab("join");
+          document.getElementById("joinInput").value = location.href;
+          await joinRoom(info);
+        } catch (error) {
+          showToast(error.message);
+        }
+      } else {
+        const savedHostRoom = readSavedHostRoom();
+        if (savedHostRoom) await restoreHostRoom(savedHostRoom);
+      }
     }
+
+    initializeOnlineSystem();
   </script>
 </body>
 </html>

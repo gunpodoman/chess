@@ -45,9 +45,9 @@ export function mountGameView() {
   const chatInput = document.getElementById("chatInput");
   const toastEl = document.getElementById("toast");
   const logoIcon = document.getElementById("logoIcon");
-  
+
   if (logoIcon) logoIcon.replaceChildren(createPieceImage("n"));
-  
+
   const appState = createAppState();
   const disposables = createDisposables();
   const boardView = createBoardView(boardEl, onSquareClick);
@@ -65,8 +65,8 @@ export function mountGameView() {
   const HOST_ROOM_STORAGE = "firebaseChessHostRoomV1";
   const OPPONENT_SEAT_PREFIX = "firebaseChessOpponentSeatV1:";
   const connectionId = randomToken(10);
-  
-  
+
+
   function makeMove(move, options = {}) {
     const outcome = commitLegalMove(appState.game, move);
     if (!outcome) return false;
@@ -88,26 +88,26 @@ export function mountGameView() {
     if (!appState.connected || !appState.roomMeta || !appState.roomMeta.opponentUid) return false;
     return appState.localColor === color;
   }
-  
+
   function onSquareClick(square) {
     if (appState.pendingPromotion || appState.game.result) return;
     const piece = appState.game.board[square];
-  
+
     if (!canLocalMove(appState.game.turn)) {
       if (appState.networkMode !== "offline") showToast(appState.connected ? "상대 차례입니다" : "먼저 상대와 연결하세요");
       return;
     }
-  
+
     if (appState.selectedSquare === -1) {
       if (piece && pieceColor(piece) === appState.game.turn) selectSquare(square);
       return;
     }
-  
+
     if (piece && pieceColor(piece) === appState.game.turn) {
       selectSquare(square);
       return;
     }
-  
+
     const choices = appState.selectedMoves.filter(move => move.to === square);
     if (choices.length === 0) {
       appState.selectedSquare = -1;
@@ -115,26 +115,26 @@ export function mountGameView() {
       renderBoard();
       return;
     }
-  
+
     if (choices.some(move => move.promotion)) {
       appState.pendingPromotion = choices;
       showPromotion(appState.game.turn);
       return;
     }
-  
+
     makeMove(choices[0]);
   }
-  
+
   function selectSquare(square) {
     appState.selectedSquare = square;
     appState.selectedMoves = generateLegalMoves(appState.game, appState.game.turn).filter(move => move.from === square);
     renderBoard();
   }
-  
+
   function showPromotion(color) {
     promotionView.show(color);
   }
-  
+
   function renderBoard() {
     boardView.render({
       game: appState.game,
@@ -143,31 +143,31 @@ export function mountGameView() {
       selectedMoves: appState.selectedMoves
     });
   }
-  
-  
+
+
   function renderPlayers() {
     playersView.render(appState);
   }
-  
+
   function renderMoves() {
     moveListView.render(appState.game.moveHistory);
   }
-  
+
   function renderBanner() {
     bannerView.render(appState.game.result);
   }
-  
+
   function renderAll() {
     renderBoard();
     renderPlayers();
     renderMoves();
     renderBanner();
   }
-  
+
   function serializeGame() {
     return serializeGameState(appState.game);
   }
-  
+
   function loadSerializedGame(data) {
     appState.game = deserializeGame(data);
     appState.selectedSquare = -1;
@@ -175,7 +175,7 @@ export function mountGameView() {
     appState.pendingPromotion = null;
     renderAll();
   }
-  
+
   function newGame(send = true) {
     if (appState.networkMode === "firebase" && appState.connectionRole !== "host") {
       showToast("새 대국은 방장만 시작할 수 있습니다");
@@ -189,7 +189,7 @@ export function mountGameView() {
     addSystemMessage("새 대국이 시작되었습니다.");
     if (send && appState.networkMode === "firebase") publishCurrentGame("newGame");
   }
-  
+
   function resign() {
     if (appState.game.result) return;
     const color = appState.networkMode === "offline" ? appState.game.turn : appState.localColor;
@@ -202,11 +202,11 @@ export function mountGameView() {
     renderAll();
     if (appState.networkMode === "firebase") publishCurrentGame("resign");
   }
-  
+
   function exportPgn() {
     return gameToPgn(appState.game);
   }
-  
+
   function randomToken(byteLength = 18) {
     const bytes = new Uint8Array(byteLength);
     crypto.getRandomValues(bytes);
@@ -214,16 +214,16 @@ export function mountGameView() {
     bytes.forEach(byte => { binary += String.fromCharCode(byte); });
     return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
   }
-  
+
   function setActiveTab(name) {
     connectionView.setActiveTab(name);
   }
-  
+
   function buildInviteLink(id) {
     const base = location.href.split("#")[0];
     return `${base}#room=${encodeURIComponent(id)}`;
   }
-  
+
   function parseInvite(rawValue) {
     const value = String(rawValue || "").trim();
     if (!value) throw new Error("초대 링크를 입력하세요");
@@ -233,26 +233,26 @@ export function mountGameView() {
     if (!/^fc-[A-Za-z0-9_-]{20,}$/.test(id)) throw new Error("올바른 Peer Chess 초대 링크가 아닙니다");
     return { roomId: id };
   }
-  
+
   function seatStorageKey(id) {
     return OPPONENT_SEAT_PREFIX + id;
   }
-  
+
   function getStoredSeatToken(id) {
     try { return localStorage.getItem(seatStorageKey(id)) || ""; }
     catch (error) { return ""; }
   }
-  
+
   function saveSeatToken(id, token) {
     try { localStorage.setItem(seatStorageKey(id), token); }
     catch (error) { console.debug(error); }
   }
-  
+
   function saveHostRoom(id) {
     try { localStorage.setItem(HOST_ROOM_STORAGE, JSON.stringify({ roomId: id, savedAt: Date.now() })); }
     catch (error) { console.debug(error); }
   }
-  
+
   function readSavedHostRoom() {
     try {
       const saved = JSON.parse(localStorage.getItem(HOST_ROOM_STORAGE) || "null");
@@ -261,18 +261,18 @@ export function mountGameView() {
       return null;
     }
   }
-  
+
   function clearSavedHostRoom() {
     try { localStorage.removeItem(HOST_ROOM_STORAGE); }
     catch (error) { console.debug(error); }
   }
-  
+
   async function ensureFirebaseAuth() {
     if (appState.authUser) return appState.authUser;
     appState.authUser = await authenticateGuest();
     return appState.authUser;
   }
-  
+
   function clearRoomListeners() {
     for (const unsubscribe of appState.roomUnsubscribers) {
       try { unsubscribe(); } catch (error) { console.debug(error); }
@@ -280,20 +280,20 @@ export function mountGameView() {
     appState.roomUnsubscribers = [];
     appState.seenChatKeys = new Set();
   }
-  
+
   async function removePresence() {
     if (!appState.presenceSession) return;
     await appState.presenceSession.dispose();
     appState.presenceSession = null;
   }
-  
+
   function roleForUid(uid) {
     if (!appState.roomMeta || !uid) return "spectator";
     if (uid === appState.roomMeta.hostUid) return "host";
     if (uid === appState.roomMeta.opponentUid) return "opponent";
     return "spectator";
   }
-  
+
   function applyRole(role) {
     appState.connectionRole = role;
     appState.networkRole = role === "host" ? "host" : "client";
@@ -313,7 +313,7 @@ export function mountGameView() {
     }
     renderAll();
   }
-  
+
   function updateServerStatus() {
     statusDot.classList.toggle("online", appState.firebaseOnline);
     disconnectBtn.disabled = appState.networkMode === "offline";
@@ -323,7 +323,7 @@ export function mountGameView() {
       renderPlayers();
       return;
     }
-  
+
     appState.connected = appState.firebaseOnline;
     const opponentOnline = Boolean(appState.roomMeta && appState.roomMeta.opponentOnline);
     if (!appState.firebaseOnline) {
@@ -344,7 +344,7 @@ export function mountGameView() {
     }
     renderPlayers();
   }
-  
+
   async function setupPresence() {
     if (!appState.roomId || !appState.authUser || !appState.firebaseOnline) return;
     await removePresence();
@@ -354,7 +354,7 @@ export function mountGameView() {
       console.debug("presence:", error);
     }
   }
-  
+
   function watchRoom(id) {
     clearRoomListeners();
 
@@ -409,7 +409,7 @@ export function mountGameView() {
       addChatMessage(mine ? message.text : label + ": " + message.text, mine);
     }));
   }
-  
+
   async function attachRoom(id, role) {
     appState.roomId = id;
     appState.networkMode = "firebase";
@@ -428,7 +428,7 @@ export function mountGameView() {
     watchRoom(id);
     addSystemMessage(role === "host" ? "Firebase 서버 방을 열었습니다." : role === "opponent" ? "상대 자리로 입장했습니다." : "관전자로 입장했습니다.");
   }
-  
+
   async function claimOrRecoverOpponent(id, meta) {
     if (!appState.authUser || appState.authUser.uid === meta.hostUid) return "host";
     if (meta.opponentUid === appState.authUser.uid) return "opponent";
@@ -449,7 +449,7 @@ export function mountGameView() {
     const latestMeta = await roomService.getMeta(id);
     return latestMeta && latestMeta.opponentUid === appState.authUser.uid ? "opponent" : "spectator";
   }
-  
+
   async function createRoom() {
     try {
       await ensureFirebaseAuth();
@@ -471,7 +471,7 @@ export function mountGameView() {
       networkStatus.textContent = "방 생성 실패";
     }
   }
-  
+
   async function joinRoom(value) {
     try {
       const info = typeof value === "object" && value.roomId ? value : parseInvite(value);
@@ -493,7 +493,7 @@ export function mountGameView() {
       showToast(error.message || "방에 접속하지 못했습니다");
     }
   }
-  
+
   async function restoreHostRoom(saved) {
     try {
       await ensureFirebaseAuth();
@@ -515,7 +515,7 @@ export function mountGameView() {
       clearSavedHostRoom();
     }
   }
-  
+
   async function publishCurrentGame(action) {
     if (appState.networkMode !== "firebase" || !appState.roomId || !appState.authUser || appState.restoringRemoteState || appState.stateWritePending) return false;
     if (!appState.firebaseOnline) {
@@ -551,7 +551,7 @@ export function mountGameView() {
       appState.stateWritePending = false;
     }
   }
-  
+
   async function leaveFirebaseRoom(resetMode = true, preserveHash = false, closeRoom = false) {
     const previousRole = appState.connectionRole;
     const previousRoomId = appState.roomId;
@@ -586,7 +586,7 @@ export function mountGameView() {
       renderAll();
     }
   }
-  
+
   async function startOffline() {
     const wasHost = appState.connectionRole === "host";
     await leaveFirebaseRoom(true, false, wasHost);
@@ -596,15 +596,15 @@ export function mountGameView() {
     addSystemMessage("오프라인 대국 모드입니다.");
     showToast("오프라인 대국을 시작했습니다");
   }
-  
+
   function addChatMessage(text, mine) {
     chatView.addMessage(text, mine);
   }
-  
+
   function addSystemMessage(text) {
     chatView.addSystemMessage(text);
   }
-  
+
   async function sendChat() {
     const text = chatInput.value.trim();
     if (!text) return;
@@ -620,7 +620,7 @@ export function mountGameView() {
       showToast("채팅 전송에 실패했습니다");
     }
   }
-  
+
   async function copyText(text, successMessage) {
     if (!text.trim()) {
       showToast("복사할 내용이 없습니다");
@@ -642,12 +642,12 @@ export function mountGameView() {
       showToast(successMessage);
     }
   }
-  
-  
+
+
   function showToast(text) {
     toastView.show(text);
   }
-  
+
   function playMoveSound(capture, check) {
     if (!appState.soundEnabled) return;
     try {
@@ -668,7 +668,7 @@ export function mountGameView() {
       console.debug(error);
     }
   }
-  
+
   document.querySelectorAll(".tab").forEach(tab => {
     disposables.listen(tab, "click", () => setActiveTab(tab.dataset.tab));
   });
@@ -724,7 +724,7 @@ export function mountGameView() {
       showToast("Firebase 익명 인증에 실패했습니다");
       return;
     }
-  
+
     if (location.hash.includes("room=")) {
       try {
         const info = parseInvite(location.href);
@@ -739,7 +739,7 @@ export function mountGameView() {
       if (savedHostRoom) await restoreHostRoom(savedHostRoom);
     }
   }
-  
+
   initializeOnlineSystem();
 
   return {
